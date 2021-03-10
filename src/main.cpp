@@ -17,6 +17,19 @@ float vertices[] = {
 };
 
 
+float verticesRectangle[] = {
+    0.5f,  0.5f, 0.0f, // top right
+    0.5f, -0.5f, 0.0f, // bottom right
+   -0.5f, -0.5f, 0.0f, // bottom left
+   -0.5f,  0.5f, 0.0f, // top left
+};
+
+unsigned int indices[] = {
+    0, 1, 3,
+    1, 2, 3
+};
+
+
 
 // In order for OpenGL to use the shader it has to dynamically
 // compile it at run-time from its source code.
@@ -184,9 +197,14 @@ int main() {
     // GL_STATIC_DRAW : the data is set only once and used many times
     // GL_STREAM_DRAW : the data is set only once and used by the GPU at most a few times
     // GL_DYNAMIC_DRAW : the data is changed a lot and used many times
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(verticesRectangle), verticesRectangle, GL_STATIC_DRAW);
 
+    // create EBO to store indices
+    unsigned int EBO;
+    glGenBuffers(1, &EBO);
 
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     // glVertexAttribPointer tells OpenGL how to interpret the vertex data (per vertex attribute)
     // param 1 -> which vertex attribute we want to configure. In the shader we specified
@@ -222,7 +240,8 @@ int main() {
 
         glUseProgram(shaderProgram);
         glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glBindVertexArray(0);
 
         // check and call events and callback functions
         // if we defined them
