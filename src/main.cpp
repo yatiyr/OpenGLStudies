@@ -1,7 +1,7 @@
 #include <iostream>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-
+#include <ShaderProgram.h>
 
 
 // In order to draw something we need vertices.
@@ -47,7 +47,7 @@ const char* fragmentShaderSource = "#version 330 core\n"
                                    "void main()\n"
                                    "{\n"
                                    "    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);"
-                                   "}\0";
+                                   "}\0";                               
 
 // Callback function which is going to be called
 // when we resize our window
@@ -112,71 +112,9 @@ int main() {
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
 
-    // Create a vertex shader object
-    unsigned int vertexShader;
-    vertexShader = glCreateShader(GL_VERTEX_SHADER);
-
-    // Attach the source code to the shader object and compile the shader
-    // glShaderSource : param 1 -> shader object to compile
-    //                  param 2 -> how many string we're passing as source code
-    //                  param 3 -> actual source code of the vertex shader
-    //                  param 4 -> NULL (tutorial does not mention what it is :D)
-    glShaderSource(vertexShader, 1, &vertexShaderSource, nullptr);
-    glCompileShader(vertexShader);
-
-    // Checking compile time errors for vertex shader
-    int successVS;
-    char infoLogVS[512];
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &successVS);
-
-    if(!successVS)
-    {
-        glGetShaderInfoLog(vertexShader, 512, nullptr, infoLogVS);
-        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLogVS << '\n';
-    }
-
-    // Create a fragment shader object just like vertex shader
-    unsigned int fragmentShader;
-    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, nullptr);
-    glCompileShader(fragmentShader);
-
-    int successFS;
-    char infoLogFS[512];
-    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &successFS);
-
-    if(!successVS)
-    {
-        glGetShaderInfoLog(fragmentShader, 512, nullptr, infoLogFS);
-        std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLogFS << '\n';
-    }
-
-    // We need to create a shader program and link it with fragment and vertex shaders
-    // that we have created
-    unsigned int shaderProgram;
-    shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-
-    // check if linking shader program is successful
-    int successSP;
-    char infoLogSP[512];
-    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &successSP);
-    if(!successSP)
-    {
-        glGetProgramInfoLog(shaderProgram, 512, nullptr, infoLogSP);
-        std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLogSP << '\n';
-    }
-
-    // We activate shaderProgram by calling glUseProgram
-    // Every shader and rendering call after glUseProgram will
-    // now use this program object
-    glUseProgram(shaderProgram);
-
-    // Delete shaders because we don't need them anymore
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
+    // Initialize shader program from sources
+    ShaderProgram program(vertexShaderSource,fragmentShaderSource);
+    program.useProgram();
 
     // create vertex array object
     unsigned int VAO;
@@ -222,6 +160,10 @@ int main() {
     glEnableVertexAttribArray(0);
 
 
+    glBindVertexArray(0);
+
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
     // Our render loop, keeps on running untel we tell
     // GLFW to stop.
     // glfwWindowShouldClose: checks at the start of
@@ -238,10 +180,9 @@ int main() {
         // color we specify
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glUseProgram(shaderProgram);
+        program.useProgram();
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-        glBindVertexArray(0);
 
         // check and call events and callback functions
         // if we defined them
@@ -278,6 +219,9 @@ int main() {
 
 
     }
+
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
 
     // To exit gracefully, we clean all of GLFW's
     // resources that were allocated.
