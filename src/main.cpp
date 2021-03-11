@@ -2,52 +2,8 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <ShaderProgram.h>
-
-
-// In order to draw something we need vertices.
-// OpenGL only processes 3D coordinates when
-// they are in a specific range between -1.0
-// and 1.0 on all 3 axes. All coordinates within
-// this so called called normalized device coordinates
-// range will end up visible on our screen
-float vertices[] = {
-    -0.5f, -0.5f, 0.0f,
-     0.5f, -0.5f, 0.0f,
-     0.0f,  0.5f, 0.0f
-};
-
-
-float verticesRectangle[] = {
-    0.5f,  0.5f, 0.0f, // top right
-    0.5f, -0.5f, 0.0f, // bottom right
-   -0.5f, -0.5f, 0.0f, // bottom left
-   -0.5f,  0.5f, 0.0f, // top left
-};
-
-unsigned int indices[] = {
-    0, 1, 3,
-    1, 2, 3
-};
-
-
-
-// In order for OpenGL to use the shader it has to dynamically
-// compile it at run-time from its source code.
-const char* vertexShaderSource = "#version 330 core\n"
-                                 "layout (location=0) in vec3 aPos;\n"
-                                 "void main()\n"
-                                 "{\n"
-                                 "  gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-                                 "}\0";
-
-
-// We declare fragment shader source just like vertex shader source
-const char* fragmentShaderSource = "#version 330 core\n"
-                                   "out vec4 FragColor;\n"
-                                   "void main()\n"
-                                   "{\n"
-                                   "    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);"
-                                   "}\0";                               
+#include <math.h>
+#include <stb_image.h>
 
 // Callback function which is going to be called
 // when we resize our window
@@ -67,8 +23,36 @@ void processInput(GLFWwindow* window) {
     }
 }
 
+// In order to draw something we need vertices.
+// OpenGL only processes 3D coordinates when
+// they are in a specific range between -1.0
+// and 1.0 on all 3 axes. All coordinates within
+// this so called called normalized device coordinates
+// range will end up visible on our screen
+float vertices[] = {
+    -0.5f, -0.5f, 0.0f,
+     0.5f, -0.5f, 0.0f,
+     0.0f,  0.5f, 0.0f
+};
+
+float verticesRectangle[] = {
+    // positions          // colors           // texture coords
+     0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // top right
+     0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // bottom right
+    -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
+    -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // top left 
+};
+unsigned int indices[] = {
+    0, 1, 3,
+    1, 2, 3
+};                             
+
 int main() {
 
+    // flip loaded textures images vertically
+    stbi_set_flip_vertically_on_load(true);
+
+    
     // We initialize OpenGL
     glfwInit();
 
@@ -106,15 +90,71 @@ int main() {
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
 
+
+    // ------------------ SET TEXTURE ------------------- //
+
+    unsigned int texture1;
+    glGenTextures(1, &texture1);
+    glBindTexture(GL_TEXTURE_2D, texture1);
+
+    // set wrapping filtering options
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // load and generate the texture;
+    int width, height, nrChannels;
+    unsigned char *data = stbi_load("../assets/textures/container.jpg", &width, &height, &nrChannels, 0);
+    if(data)
+    {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    else
+    {
+        std::cout << "Failed to load texture" << '\n';
+    }
+    stbi_image_free(data);
+
+
+
+    unsigned int texture2;
+    glGenTextures(1, &texture2);
+    glBindTexture(GL_TEXTURE_2D, texture2);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    int width2, height2, nrChannels2;
+
+    unsigned char *data2 = stbi_load("../assets/textures/awesomeface.png", &width2, &height2, &nrChannels2, 0);
+    if(data2)
+    {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width2, height2, 0 , GL_RGBA, GL_UNSIGNED_BYTE, data2);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    else
+    {
+        std::cout << "Failed to load texture" << '\n';
+    }
+    stbi_image_free(data2);
+    // -------------------------------------------------- //
+
+
     // We register a callback function for detecting
     // window size change events in order to change
     // viewport accordingly
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-
     // Initialize shader program from sources
-    ShaderProgram program(vertexShaderSource,fragmentShaderSource);
-    program.useProgram();
+    ShaderProgram *program = new ShaderProgram("shaders/shader1.vert","shaders/shader1.frag");
+    float timeValue = glfwGetTime();
+    float greenValue = (sin(timeValue) / 2.0f) + 0.5f;  
+    program->use();
+    program->set4Float("ourColor", 0.0f, greenValue, 0.0f, 1.0f);
 
     // create vertex array object
     unsigned int VAO;
@@ -156,8 +196,15 @@ int main() {
     // param 6 -> this is the offset of where the position data begins in the buffer
     //            since the position data is at the start  of the data array this value
     //            is just 0.
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
+
+
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(4 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
 
 
     glBindVertexArray(0);
@@ -180,7 +227,19 @@ int main() {
         // color we specify
         glClear(GL_COLOR_BUFFER_BIT);
 
-        program.useProgram();
+        program->use();
+
+        // update the uniform color
+        float timeValue = glfwGetTime();
+        float greenValue = sin(timeValue) / 2.0f + 0.5f;
+        program->set4Float("ourColor", 0.0f, greenValue, 0.0f, 1.0f);
+        program->setInt("texture1", 0);
+        program->setInt("texture2", 1);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texture1);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, texture2);
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
@@ -222,7 +281,7 @@ int main() {
 
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
-
+    delete program;
     // To exit gracefully, we clean all of GLFW's
     // resources that were allocated.
     glfwTerminate();

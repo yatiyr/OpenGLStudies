@@ -51,3 +51,6 @@ add_library(GLAD "${CMAKE_SOURCE_DIR}/thirdparty/glad.c")
 set(LIBS glfw3 GL X11 pthread  Xrandr Xi dl assimp STB_IMAGE GLAD)
 
 target_link_libraries(${PROJECT_NAME} ${LIBS})
+
+
+file(COPY src/shaders DESTINATION ${CMAKE_BINARY_DIR})

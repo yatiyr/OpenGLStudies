@@ -2,20 +2,50 @@
 #define __SHADER_PROGRAM__
 
 #include <iostream>
+#include <fstream>
+#include <sstream>
+
 #include <glad/glad.h>
-#include <GLFW/glfw3.h>
 
 class ShaderProgram {
 public:
-    unsigned int shaderProgram;
+    unsigned int id;
 
-    ~ShaderProgram()
+    ShaderProgram(const char* vertexPath, const char* fragmentPath)
     {
-        glDeleteProgram(shaderProgram);
-    }
+        std::string vertexCode;
+        std::string fragmentCode;
+        std::ifstream vShaderFile;
+        std::ifstream fShaderFile;
 
-    ShaderProgram(const char* vsSource, const char* fsSource)
-    {
+        vShaderFile.exceptions (std::ifstream::failbit | std::ifstream::badbit);
+        fShaderFile.exceptions (std::ifstream::failbit | std::ifstream::badbit);
+
+        try
+        {
+            vShaderFile.open(vertexPath);
+            fShaderFile.open(fragmentPath);
+            std::stringstream vShaderStream, fShaderStream;
+
+            vShaderStream << vShaderFile.rdbuf();
+            fShaderStream << fShaderFile.rdbuf();
+
+            vShaderFile.close();
+            fShaderFile.close();
+
+            vertexCode = vShaderStream.str();
+            fragmentCode = fShaderStream.str();
+        }
+        catch(std::ifstream::failure e)
+        {
+            std::cout << "ERROR:SHADER::FILE_NOT_SUCCESSFULLY_READ" << std::endl;
+        }
+        const char* vShaderCode = vertexCode.c_str();
+        const char* fShaderCode = fragmentCode.c_str();
+
+        unsigned int vertex, fragment;
+        int success;
+        char infoLog[512];
 
         // ------------- COMPILE VERTEX SHADER ------------- //
         unsigned int vertexShader;
@@ -26,7 +56,7 @@ public:
         //                  param 2 -> how many string we're passing as source code
         //                  param 3 -> actual source code of the vertex shader
         //                  param 4 -> NULL (tutorial does not mention what it is :D)
-        glShaderSource(vertexShader, 1, &vsSource, nullptr);
+        glShaderSource(vertexShader, 1, &vShaderCode, nullptr);
         glCompileShader(vertexShader);
 
         int successVS;
@@ -42,7 +72,7 @@ public:
         // ------------ COMPILE FRAGMENT SHADER ------------ //
         unsigned int fragmentShader;
         fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-        glShaderSource(fragmentShader, 1, &fsSource, nullptr);
+        glShaderSource(fragmentShader, 1, &fShaderCode, nullptr);
         glCompileShader(fragmentShader);
 
         int successFS;
@@ -57,33 +87,57 @@ public:
 
         // We need to create a shader program and link it with fragment and vertex shaders
         // that we have created
-        shaderProgram = glCreateProgram();
-        glAttachShader(shaderProgram, vertexShader);
-        glAttachShader(shaderProgram, fragmentShader);
-        glLinkProgram(shaderProgram);
+        id = glCreateProgram();
+        glAttachShader(id, vertexShader);
+        glAttachShader(id, fragmentShader);
+        glLinkProgram(id);
 
         // check if linking shader program is successful
         int successSP;
         char infoLogSP[512];
-        glGetProgramiv(shaderProgram, GL_LINK_STATUS, &successSP);
+        glGetProgramiv(id, GL_LINK_STATUS, &successSP);
         if(!successSP)
         {
-            glGetProgramInfoLog(shaderProgram, 512, nullptr, infoLogSP);
+            glGetProgramInfoLog(id, 512, nullptr, infoLogSP);
             std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLogSP << '\n';
         }
 
         // Delete shaders because we don't need them anymore
         glDeleteShader(vertexShader);
-        glDeleteShader(fragmentShader);                
+        glDeleteShader(fragmentShader);         
+    }    
 
+    ~ShaderProgram()
+    {
+        glDeleteProgram(id);
     }
 
-    void useProgram()
+    void use()
     {
         // We activate shaderProgram by calling glUseProgram
         // Every shader and rendering call after glUseProgram will
         // now use this program object        
-        glUseProgram(shaderProgram);
+        glUseProgram(id);
+    }
+
+    void setBool(const std::string &name, bool value) const
+    {
+        glUniform1i(glGetUniformLocation(id, name.c_str()), (int)value);
+    }
+
+    void setInt(const std::string &name, int value) const
+    {
+        glUniform1i(glGetUniformLocation(id, name.c_str()), value);
+    }
+
+    void setFloat(const std::string &name, float value) const 
+    {
+        glUniform1f(glGetUniformLocation(id, name.c_str()), value);
+    }
+
+    void set4Float(const std::string &name, float x, float y, float z, float w)
+    {
+        glUniform4f(glGetUniformLocation(id,name.c_str()), x, y, z, w);
     }
 
 };
