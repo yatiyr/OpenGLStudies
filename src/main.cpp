@@ -52,7 +52,7 @@ int main() {
     // flip loaded textures images vertically
     stbi_set_flip_vertically_on_load(true);
 
-    
+
     // We initialize OpenGL
     glfwInit();
 
@@ -93,6 +93,12 @@ int main() {
 
     // ------------------ SET TEXTURE ------------------- //
 
+    // to prevent segmentation faults when reading images
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+    glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
+    glPixelStorei(GL_UNPACK_SKIP_ROWS, 0);       
+
     unsigned int texture1;
     glGenTextures(1, &texture1);
     glBindTexture(GL_TEXTURE_2D, texture1);
@@ -107,7 +113,7 @@ int main() {
     int width, height, nrChannels;
     unsigned char *data = stbi_load("../assets/textures/container.jpg", &width, &height, &nrChannels, 0);
     if(data)
-    {
+    {     
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     }
