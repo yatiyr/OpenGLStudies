@@ -5,6 +5,11 @@
 #include <math.h>
 #include <stb_image.h>
 
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 // Callback function which is going to be called
 // when we resize our window
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
@@ -162,6 +167,7 @@ int main() {
     program->use();
     program->set4Float("ourColor", 0.0f, greenValue, 0.0f, 1.0f);
 
+
     // create vertex array object
     unsigned int VAO;
     glGenVertexArrays(1, &VAO);
@@ -239,6 +245,13 @@ int main() {
         float timeValue = glfwGetTime();
         float greenValue = sin(timeValue) / 2.0f + 0.5f;
         program->set4Float("ourColor", 0.0f, greenValue, 0.0f, 1.0f);
+
+
+        glm::mat4 trans = glm::mat4(1.0f);
+        trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
+        trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+        program->set4Matrix("transform", trans);
+
         program->setInt("texture1", 0);
         program->setInt("texture2", 1);
 

@@ -7,6 +7,11 @@
 
 #include <glad/glad.h>
 
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 class ShaderProgram {
 public:
     unsigned int id;
@@ -138,6 +143,11 @@ public:
     void set4Float(const std::string &name, float x, float y, float z, float w)
     {
         glUniform4f(glGetUniformLocation(id,name.c_str()), x, y, z, w);
+    }
+
+    void set4Matrix(const std::string &name, glm::highp_mat4 matrix)
+    {
+        glUniformMatrix4fv(glGetUniformLocation(id, name.c_str()), 1, GL_FALSE, glm::value_ptr(matrix));
     }
 
 };
