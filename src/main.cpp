@@ -1,7 +1,5 @@
-#include <iostream>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <ShaderProgram.h>
 #include <math.h>
 #include <stb_image.h>
 
@@ -10,12 +8,59 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <ShaderProgram.h>
+#include <Camera.h>
+
+#include <iostream>
+
+// GLOBAL VARIABLES FOR DELTATIME
+float deltaTime = 0.0f; // Time between current and the last frame
+float lastFrame = 0.0f; // Time of last frame
+
+// window settings
+const unsigned int SCR_WIDTH = 800;
+const unsigned int SCR_HEIGHT = 600;
+
+// Camera settings
+Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+float lastX = SCR_WIDTH / 2.0f;
+float lastY = SCR_HEIGHT / 2.0f;
+bool firstMouse = true;
+
+
 // Callback function which is going to be called
 // when we resize our window
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+
+    // make sure the viewport matches the new window dimensions
+    // width and height will be significantly larger than specified
+    // on retina displays
     glViewport(0, 0, width, height);
 }
 
+// Callback function for taking inputs from mouse
+void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
+
+    if(firstMouse)
+    {
+        lastX = xpos;
+        lastY = ypos;
+        firstMouse = false;
+    }
+
+    float xoffset = xpos - lastX;
+    float yoffset = lastY - ypos; // reversed because y coordinates go from bottom to top
+
+    lastX = xpos;
+    lastY = ypos;
+
+    camera.ProcessMouseMovement(xoffset, yoffset);
+}
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+    camera.ProcessMouseScroll(yoffset);
+}
 
 // For input control
 void processInput(GLFWwindow* window) {
@@ -26,8 +71,20 @@ void processInput(GLFWwindow* window) {
     {
         glfwSetWindowShouldClose(window, true);
     }
+
+    // camera inputs
+    if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        camera.ProcessKeyboard(FORWARD, deltaTime);
+    if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        camera.ProcessKeyboard(BACKWARD, deltaTime);
+    if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        camera.ProcessKeyboard(LEFT, deltaTime);
+    if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        camera.ProcessKeyboard(RIGHT, deltaTime);
 }
 
+
+// ------------------------------------ FROM OLDER TUTORIAL PARTS -------------------------------------- //
 // In order to draw something we need vertices.
 // OpenGL only processes 3D coordinates when
 // they are in a specific range between -1.0
@@ -52,69 +109,9 @@ unsigned int indices[] = {
     1, 2, 3
 };
 
-
-float verticesCube[] = {
-    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-     0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-
-    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-    -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
-};
-
-glm::vec3 cubePositions[] = {
-    glm::vec3( 0.0f,  0.0f,  0.0f), 
-    glm::vec3( 2.0f,  5.0f, -15.0f), 
-    glm::vec3(-1.5f, -2.2f, -2.5f),  
-    glm::vec3(-3.8f, -2.0f, -12.3f),  
-    glm::vec3( 2.4f, -0.4f, -3.5f),  
-    glm::vec3(-1.7f,  3.0f, -7.5f),  
-    glm::vec3( 1.3f, -2.0f, -2.5f),  
-    glm::vec3( 1.5f,  2.0f, -2.5f), 
-    glm::vec3( 1.5f,  0.2f, -1.5f), 
-    glm::vec3(-1.3f,  1.0f, -1.5f)  
-};
+// ------------------------------------------------------------------------------------------------------- //
 
 int main() {
-
-    // flip loaded textures images vertically
-    stbi_set_flip_vertically_on_load(true);
-
 
     // We initialize OpenGL
     glfwInit();
@@ -123,6 +120,10 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+#ifdef __APPLE__
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
 
     // We create a pointer to a GLFWindow object and if we 
     // fail creating it, terminate OpenGL
@@ -134,105 +135,93 @@ int main() {
         return -1;
     }
 
-
     // We change the current context into our window that we've created
     glfwMakeContextCurrent(window);
+    // We register a callback function for detecting
+    // window size change events in order to change
+    // viewport accordingly
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
+    // Register callback for taking inputs from mouse
+    glfwSetCursorPosCallback(window, mouse_callback);
+
+    // Register scroll callbacks
+    glfwSetScrollCallback(window, scroll_callback);
+
+    // Capture and hide mouse
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);    
+
+    // tell glad load all opengl function pointers
     if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         std::cout << "Failed to initialize GLAD" << '\n';
         return -1;
     }
 
-    // We initialize viewport
-    glViewport(0, 0, 800, 600);
-
-
-    // Specify clear color
-    // This is a state setting function
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-
-
-
-    // ------------------ SET TEXTURE ------------------- //
-
-    // to prevent segmentation faults when reading images
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-    glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
-    glPixelStorei(GL_UNPACK_SKIP_ROWS, 0);       
-
-    unsigned int texture1;
-    glGenTextures(1, &texture1);
-    glBindTexture(GL_TEXTURE_2D, texture1);
-
-    // set wrapping filtering options
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    // load and generate the texture;
-    int width, height, nrChannels;
-    unsigned char *data = stbi_load("../assets/textures/container.jpg", &width, &height, &nrChannels, 0);
-    if(data)
-    {     
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-    }
-    else
-    {
-        std::cout << "Failed to load texture" << '\n';
-    }
-    stbi_image_free(data);
-
-
-
-    unsigned int texture2;
-    glGenTextures(1, &texture2);
-    glBindTexture(GL_TEXTURE_2D, texture2);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    int width2, height2, nrChannels2;
-
-    unsigned char *data2 = stbi_load("../assets/textures/awesomeface.png", &width2, &height2, &nrChannels2, 0);
-    if(data2)
-    {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width2, height2, 0 , GL_RGBA, GL_UNSIGNED_BYTE, data2);
-        glGenerateMipmap(GL_TEXTURE_2D);
-    }
-    else
-    {
-        std::cout << "Failed to load texture" << '\n';
-    }
-    stbi_image_free(data2);
-    // -------------------------------------------------- //
-
-
-    // We register a callback function for detecting
-    // window size change events in order to change
-    // viewport accordingly
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    // global opengl state -> depth test
+    glEnable(GL_DEPTH_TEST);
 
     // Initialize shader program from sources
     ShaderProgram *program = new ShaderProgram("shaders/shader1.vert","shaders/shader1.frag");
-    program->use();
-    glm::mat4 model = glm::mat4(1.0f);
-    model = glm::rotate(model, glm::radians(-1.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
-    //view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+    // set up vertex data (and buffer(s)) and configure vertex attributes
+    float verticesCube[] = {
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+         0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
 
-    glm::mat4 projection;
-    projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.01f, 100.0f);
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
 
-    program->set4Matrix("model", model);
-    program->set4Matrix("projection", projection);
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
 
-    model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));    
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+    };
+
+    // Positions of cubes
+    glm::vec3 cubePositions[] = {
+        glm::vec3( 0.0f,  0.0f,  0.0f), 
+        glm::vec3( 2.0f,  5.0f, -15.0f), 
+        glm::vec3(-1.5f, -2.2f, -2.5f),  
+        glm::vec3(-3.8f, -2.0f, -12.3f),  
+        glm::vec3( 2.4f, -0.4f, -3.5f),  
+        glm::vec3(-1.7f,  3.0f, -7.5f),  
+        glm::vec3( 1.3f, -2.0f, -2.5f),  
+        glm::vec3( 1.5f,  2.0f, -2.5f), 
+        glm::vec3( 1.5f,  0.2f, -1.5f), 
+        glm::vec3(-1.3f,  1.0f, -1.5f)  
+    };
 
     // create vertex array object
     unsigned int VAO;
@@ -281,14 +270,79 @@ int main() {
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
-
-
+    // unvind VAO -> not necessary they say
     glBindVertexArray(0);
 
+
+    // ------------------ SET TEXTURE ------------------- //
+
+    // to prevent segmentation faults when reading images
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+    glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
+    glPixelStorei(GL_UNPACK_SKIP_ROWS, 0);       
+
+    unsigned int texture1, texture2;
+
+    // texture 1 initialization
+    glGenTextures(1, &texture1);
+    glBindTexture(GL_TEXTURE_2D, texture1);
+
+    // set wrapping filtering parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    // set texture filtering parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // load and generate the texture and produce mipmaps;
+    int width, height, nrChannels;
+    stbi_set_flip_vertically_on_load(true);  // flip loaded textures images vertically
+    unsigned char *data = stbi_load("../assets/textures/container.jpg", &width, &height, &nrChannels, 0);
+    if(data)
+    {     
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    else
+    {
+        std::cout << "Failed to load texture" << '\n';
+    }
+    stbi_image_free(data);
+
+    // texture 2 initialization
+    glGenTextures(1, &texture2);
+    glBindTexture(GL_TEXTURE_2D, texture2);
+
+    // set texture wrapping parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    // set texture filtering parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // load and generate the texture and produce mipmaps
+    data = stbi_load("../assets/textures/awesomeface.png", &width, &height, &nrChannels, 0);
+    if(data)
+    {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0 , GL_RGBA, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    else
+    {
+        std::cout << "Failed to load texture" << '\n';
+    }
+    stbi_image_free(data);
+    // -------------------------------------------------- //
+
+    // Tell openGL for each sample2D to which texture unit it belongs to (has to be done once)
+    program->use();
+    program->setInt("texture1", 0);
+    program->setInt("texture2", 1);
+
+ 
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-
-    glEnable(GL_DEPTH_TEST);
     // Our render loop, keeps on running until we tell
     // GLFW to stop.
     // glfwWindowShouldClose: checks at the start of
@@ -297,58 +351,66 @@ int main() {
     //                        to close.
     while(!glfwWindowShouldClose(window))
     {
+
+        // Calculate deltatime
+        float currentFrame = glfwGetTime();
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
+
         // input
         processInput(window);
 
+    // ------------------- RENDERING CODE --------------------- //
+        // Specify clear color
+        // This is a state setting function
+        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);        
         // This is a state-using function
         // it clears the buffer with clear
         // color we specify
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        program->use();
-
-        program->setInt("texture1", 0);
-        program->setInt("texture2", 1);
-
+        // bind textures on corresponding texture units
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture1);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, texture2);
-        glBindVertexArray(VAO);
 
-        const float radius = 10.0f;
-        float camX = sin(glfwGetTime()) * radius;
-        float camZ = cos(glfwGetTime()) * radius;
+        // activate our shader program
+        program->use();
 
-        glm::mat4 view;
-        view = glm::lookAt(glm::vec3(camX, 0.0f, camZ),
-                       glm::vec3(0.0f, 0.0f, 0.0f),
-                       glm::vec3(0.0f, 1.0f, 0.0f));
+        // pass projection matrix to shader -> changes every frame because of camera
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
+        program->set4Matrix("projection", projection);
 
+        // camera/view transformation
+        glm::mat4 view = camera.GetViewMatrix();
         program->set4Matrix("view", view);
 
-        // Draw multiple cubes
+        // render cubes
+        glBindVertexArray(VAO);
         for(unsigned int i = 0; i<10; i++)
         {
-            glm::mat4 model = glm::mat4(1.0f);
+            //calculate model matrix for each object and pass it into our shader program
+            glm::mat4 model = glm::mat4(1.0f); // initialize matrix to identity matrix
             model = glm::translate(model, cubePositions[i]);
             float angle = 20.0f * i;
             model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
             program->set4Matrix("model", model);
 
-            glDrawArrays(GL_TRIANGLES, 0 ,36);
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+
+            // If we use indices we have to draw like this
+            //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);            
         }
-
-        //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-
-        // check and call events and callback functions
-        // if we defined them
-        glfwPollEvents();
 
         // swap the color buffer (a large 2D buffer that
         //                        contains color values for 
         //                        each pixel in GLFW's window) 
         glfwSwapBuffers(window);
+
+        // check and call events and callback functions
+        // if we defined them
+        glfwPollEvents();
 
 
         // ------------- DOUBLE BUFFER -------------- //
