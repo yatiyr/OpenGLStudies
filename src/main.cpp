@@ -457,6 +457,9 @@ int main() {
         program->use();
 
         // Send light position to shader program
+        lightPos.x = sin(glfwGetTime()) * 3.0f;
+        lightPos.z = cos(glfwGetTime()) * 3.0f;
+        lightPos.y = 0.0f;
         program->setVec3("lightPos", lightPos.x, lightPos.y, lightPos.z);
 
         // Send view position to shader program
@@ -487,8 +490,8 @@ int main() {
             glm::mat4 model = glm::mat4(1.0f); // initialize matrix to identity matrix
             model = glm::translate(model, cubePositions[i]);
             program->setVec3("objectColor", cubeColors[i]);         
-            float angle = 20.0f * i;
-            model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+            float angle = 20.0f * (i + 10.0f);
+            model = glm::rotate(model, glm::radians(angle) * (float)glfwGetTime() * (float)0.2f, glm::vec3(1.0f, 0.3f, 0.5f));
             glm::mat3 normalMatrix = glm::transpose(glm::inverse(model));
             program->set3Matrix("normalMatrix", normalMatrix);            
             program->set4Matrix("model", model);
@@ -503,7 +506,7 @@ int main() {
 
         glm::mat4 modelLight = glm::mat4(1.0f);
         modelLight = glm::translate(modelLight, lightPos);
-        modelLight = glm::scale(modelLight, glm::vec3(0.2f));
+        modelLight = glm::scale(modelLight, glm::vec3(0.1f));
         lightProgram->use();
         lightProgram->set4Matrix("projection", projection);
         lightProgram->set4Matrix("view", view);
