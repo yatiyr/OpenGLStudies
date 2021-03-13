@@ -210,6 +210,50 @@ int main() {
         -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
     };
 
+    float verticesWithNormals[] = {
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+         0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+         0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+        -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+        -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+
+         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+         0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+         0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+         0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+         0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+         0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+        -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+        -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+         0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+         0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+        -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+        -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
+    };    
+
     // Positions of cubes
     glm::vec3 cubePositions[] = {
         glm::vec3( 0.0f,  0.0f,  0.0f), 
@@ -243,7 +287,7 @@ int main() {
     // GL_STATIC_DRAW : the data is set only once and used many times
     // GL_STREAM_DRAW : the data is set only once and used by the GPU at most a few times
     // GL_DYNAMIC_DRAW : the data is changed a lot and used many times
-    glBufferData(GL_ARRAY_BUFFER, sizeof(verticesCube), verticesCube, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(verticesWithNormals), verticesWithNormals, GL_STATIC_DRAW);
 
     // create EBO to store indices
     //unsigned int EBO;
@@ -264,9 +308,11 @@ int main() {
     // param 6 -> this is the offset of where the position data begins in the buffer
     //            since the position data is at the start  of the data array this value
     //            is just 0.
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
 
     // If we want textures
     //glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
@@ -284,7 +330,7 @@ int main() {
     // we can use container's VBO. It has the data already
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     // set vertex attribPointer
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6*sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
     glBindVertexArray(0);
@@ -378,6 +424,8 @@ int main() {
         processInput(window);
 
     // ------------------- RENDERING CODE --------------------- //
+
+        glm::vec3 lightPos(5.0f, 3.0f, -3.0f);
         // Specify clear color
         // This is a state setting function
         glClearColor(0.f, 0.f, 0.f, 1.0f);        
@@ -394,6 +442,9 @@ int main() {
 
         // activate our shader program
         program->use();
+
+        // Send light position to shader program
+        program->setVec3("lightPos", lightPos.x, lightPos.y, lightPos.z);
 
         program->setVec3("objectColor", 1.0f, 0.5f, 0.31f);
         program->setVec3("lightColor", 1.0f, 1.0f, 1.0f);
@@ -412,6 +463,8 @@ int main() {
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, cubePositions[0]);
         program->set4Matrix("model", model);
+        glm::mat3 normalMatrix = glm::transpose(glm::inverse(model));
+        program->set3Matrix("normalMatrix", normalMatrix);
         glDrawArrays(GL_TRIANGLES, 0, 36);
         /*
         for(unsigned int i = 0; i<10; i++)
@@ -433,12 +486,13 @@ int main() {
         glBindVertexArray(lightVAO);
 
         glm::mat4 modelLight = glm::mat4(1.0f);
-        modelLight = glm::translate(modelLight, glm::vec3(5.0f, 0.0f, 0.0f));
+        modelLight = glm::translate(modelLight, lightPos);
         modelLight = glm::scale(modelLight, glm::vec3(0.2f));
         lightProgram->use();
         lightProgram->set4Matrix("projection", projection);
         lightProgram->set4Matrix("view", view);
         lightProgram->set4Matrix("model", modelLight);
+        
         glDrawArrays(GL_TRIANGLES, 0, 36);        
 
         // swap the color buffer (a large 2D buffer that
