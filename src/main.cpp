@@ -162,7 +162,8 @@ int main() {
     glEnable(GL_DEPTH_TEST);
 
     // Initialize shader program from sources
-    ShaderProgram *program = new ShaderProgram("shaders/shader1.vert","shaders/shader1.frag");
+    ShaderProgram *program = new ShaderProgram("shaders/shader_lighting.vert","shaders/shader_lighting.frag");
+    ShaderProgram *lightProgram = new ShaderProgram("shaders/shader_light.vert", "shaders/shader_light.frag");
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     float verticesCube[] = {
@@ -267,11 +268,27 @@ int main() {
     glEnableVertexAttribArray(0);
 
 
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
+    // If we want textures
+    //glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    //glEnableVertexAttribArray(1);
 
-    // unvind VAO -> not necessary they say
+    // unbind VAO -> not necessary they say
     glBindVertexArray(0);
+
+
+    // ------------------- FOR CREATING LIGHT BUFFERS ------------------------ //
+    unsigned int lightVAO;
+    glGenVertexArrays(1, &lightVAO);
+    glBindVertexArray(lightVAO);
+
+    // we can use container's VBO. It has the data already
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    // set vertex attribPointer
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    glBindVertexArray(0);
+    // ----------------------------------------------------------------------- //
 
 
     // ------------------ SET TEXTURE ------------------- //
@@ -336,9 +353,9 @@ int main() {
     // -------------------------------------------------- //
 
     // Tell openGL for each sample2D to which texture unit it belongs to (has to be done once)
-    program->use();
-    program->setInt("texture1", 0);
-    program->setInt("texture2", 1);
+    //program->use();
+    //program->setInt("texture1", 0);
+    //program->setInt("texture2", 1);
 
  
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -363,7 +380,7 @@ int main() {
     // ------------------- RENDERING CODE --------------------- //
         // Specify clear color
         // This is a state setting function
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);        
+        glClearColor(0.f, 0.f, 0.f, 1.0f);        
         // This is a state-using function
         // it clears the buffer with clear
         // color we specify
@@ -378,6 +395,9 @@ int main() {
         // activate our shader program
         program->use();
 
+        program->setVec3("objectColor", 1.0f, 0.5f, 0.31f);
+        program->setVec3("lightColor", 1.0f, 1.0f, 1.0f);
+
         // pass projection matrix to shader -> changes every frame because of camera
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
         program->set4Matrix("projection", projection);
@@ -388,6 +408,12 @@ int main() {
 
         // render cubes
         glBindVertexArray(VAO);
+
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::translate(model, cubePositions[0]);
+        program->set4Matrix("model", model);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+        /*
         for(unsigned int i = 0; i<10; i++)
         {
             //calculate model matrix for each object and pass it into our shader program
@@ -402,6 +428,18 @@ int main() {
             // If we use indices we have to draw like this
             //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);            
         }
+        */
+
+        glBindVertexArray(lightVAO);
+
+        glm::mat4 modelLight = glm::mat4(1.0f);
+        modelLight = glm::translate(modelLight, glm::vec3(5.0f, 0.0f, 0.0f));
+        modelLight = glm::scale(modelLight, glm::vec3(0.2f));
+        lightProgram->use();
+        lightProgram->set4Matrix("projection", projection);
+        lightProgram->set4Matrix("view", view);
+        lightProgram->set4Matrix("model", modelLight);
+        glDrawArrays(GL_TRIANGLES, 0, 36);        
 
         // swap the color buffer (a large 2D buffer that
         //                        contains color values for 
@@ -442,6 +480,7 @@ int main() {
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
     delete program;
+    delete lightProgram;
     // To exit gracefully, we clean all of GLFW's
     // resources that were allocated.
     glfwTerminate();
