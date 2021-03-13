@@ -268,6 +268,19 @@ int main() {
         glm::vec3(-1.3f,  1.0f, -1.5f)  
     };
 
+    glm::vec3 cubeColors[] = {
+        glm::vec3( 0.356f,  1.0f,  0.160f), // green 
+        glm::vec3( 0.0f,  0.435f, 0.921f), // blue
+        glm::vec3(0.325f, 0.0f, 0.839f), // purple
+        glm::vec3(0.662f, 0.007f, 0.792f),  // pink-purple
+        glm::vec3(0.960f, 0.039f, 0.745f),  // pink
+        glm::vec3(0.960f, 0.039f, 0.333f),  // red-pink
+        glm::vec3(0.968f, 0.031f, 0.070f),  // red
+        glm::vec3(0.968f, 0.384f, 0.031f), // orange
+        glm::vec3(0.968f, 0.803f, 0.031f), // yellow
+        glm::vec3(0.698f, 0.968f, 0.031f)    // yellow-green      
+    };
+
     // create vertex array object
     unsigned int VAO;
     glGenVertexArrays(1, &VAO);
@@ -446,7 +459,9 @@ int main() {
         // Send light position to shader program
         program->setVec3("lightPos", lightPos.x, lightPos.y, lightPos.z);
 
-        program->setVec3("objectColor", 1.0f, 0.5f, 0.31f);
+        // Send view position to shader program
+        program->setVec3("viewPos", camera.Position);
+
         program->setVec3("lightColor", 1.0f, 1.0f, 1.0f);
 
         // pass projection matrix to shader -> changes every frame because of camera
@@ -460,20 +475,22 @@ int main() {
         // render cubes
         glBindVertexArray(VAO);
 
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, cubePositions[0]);
-        program->set4Matrix("model", model);
-        glm::mat3 normalMatrix = glm::transpose(glm::inverse(model));
-        program->set3Matrix("normalMatrix", normalMatrix);
+        //glm::mat4 model = glm::mat4(1.0f);
+        //model = glm::translate(model, cubePositions[0]);
+        //program->set4Matrix("model", model);
+        //glm::mat3 normalMatrix = glm::transpose(glm::inverse(model));
+        //program->set3Matrix("normalMatrix", normalMatrix);
         glDrawArrays(GL_TRIANGLES, 0, 36);
-        /*
         for(unsigned int i = 0; i<10; i++)
         {
             //calculate model matrix for each object and pass it into our shader program
             glm::mat4 model = glm::mat4(1.0f); // initialize matrix to identity matrix
             model = glm::translate(model, cubePositions[i]);
+            program->setVec3("objectColor", cubeColors[i]);         
             float angle = 20.0f * i;
             model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+            glm::mat3 normalMatrix = glm::transpose(glm::inverse(model));
+            program->set3Matrix("normalMatrix", normalMatrix);            
             program->set4Matrix("model", model);
 
             glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -481,7 +498,6 @@ int main() {
             // If we use indices we have to draw like this
             //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);            
         }
-        */
 
         glBindVertexArray(lightVAO);
 

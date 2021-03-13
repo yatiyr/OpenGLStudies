@@ -6,6 +6,7 @@ uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 
+
 // it is derived from model matrix
 // but calculating it here is costly
 // so we calculate it in cpu
@@ -16,6 +17,7 @@ out vec3 FragPos;
 
 // sending normal to fragment shader
 out vec3 Normal;
+
 
 void main()
 {
