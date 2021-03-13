@@ -10,3 +10,9 @@ Made some progress with basic stuff.
 With playing materials
 
 ![alt text](./gifs/specular_material.gif)
+
+# Update 14th March 2021 - Diffuse, Specular and Emission Maps
+
+Different textures for diffuse, specular and emissive properties have been implemented in shader and application. with time uniform, green emission is animated.
+
+![alt text](./gifs/textureMaps.gif)
