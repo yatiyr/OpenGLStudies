@@ -6,3 +6,7 @@ To be a real graphics programmer, I need to understand OpenGL really well. This 
 Made some progress with basic stuff.
 
 ![alt text](./gifs/specular.gif)
+
+With playing materials
+
+![alt text](./gifs/specular_material.gif)

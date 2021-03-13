@@ -463,9 +463,9 @@ int main() {
         lightPos.y = 0.0f;
         // give light properties to shader
         glm::vec3 lightColor;
-        lightColor.x = std::max(sin(glfwGetTime() * 2.0f), 0.5);
-        lightColor.y = std::max(sin(glfwGetTime() * 0.7f), 0.5);
-        lightColor.z = std::max(sin(glfwGetTime() * 1.3f), 0.5);
+        lightColor.x = std::max(sin(glfwGetTime() * 2.0f), 0.7);
+        lightColor.y = std::max(sin(glfwGetTime() * 0.7f), 0.6);
+        lightColor.z = std::max(sin(glfwGetTime() * 1.3f), 0.9);
 
         glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
         glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f);
