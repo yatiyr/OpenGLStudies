@@ -3,6 +3,7 @@
 #include <math.h>
 #include <stb_image.h>
 
+#include <algorithm>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -441,7 +442,7 @@ int main() {
         glm::vec3 lightPos(5.0f, 3.0f, -3.0f);
         // Specify clear color
         // This is a state setting function
-        glClearColor(0.f, 0.f, 0.f, 1.0f);        
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);        
         // This is a state-using function
         // it clears the buffer with clear
         // color we specify
@@ -460,12 +461,22 @@ int main() {
         lightPos.x = sin(glfwGetTime()) * 3.0f;
         lightPos.z = cos(glfwGetTime()) * 3.0f;
         lightPos.y = 0.0f;
-        program->setVec3("lightPos", lightPos.x, lightPos.y, lightPos.z);
+        // give light properties to shader
+        glm::vec3 lightColor;
+        lightColor.x = std::max(sin(glfwGetTime() * 2.0f), 0.5);
+        lightColor.y = std::max(sin(glfwGetTime() * 0.7f), 0.5);
+        lightColor.z = std::max(sin(glfwGetTime() * 1.3f), 0.5);
+
+        glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
+        glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f);
+
+        program->setVec3("light.position", lightPos.x, lightPos.y, lightPos.z);        
+        program->setVec3("light.ambient", ambientColor);
+        program->setVec3("light.diffuse", diffuseColor);
+        program->setVec3("light.specular", 1.0f, 1.0f, 1.0f);        
 
         // Send view position to shader program
         program->setVec3("viewPos", camera.Position);
-
-        program->setVec3("lightColor", 1.0f, 1.0f, 1.0f);
 
         // pass projection matrix to shader -> changes every frame because of camera
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
@@ -483,24 +494,27 @@ int main() {
         //program->set4Matrix("model", model);
         //glm::mat3 normalMatrix = glm::transpose(glm::inverse(model));
         //program->set3Matrix("normalMatrix", normalMatrix);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-        for(unsigned int i = 0; i<10; i++)
-        {
-            //calculate model matrix for each object and pass it into our shader program
-            glm::mat4 model = glm::mat4(1.0f); // initialize matrix to identity matrix
-            model = glm::translate(model, cubePositions[i]);
-            program->setVec3("objectColor", cubeColors[i]);         
-            float angle = 20.0f * (i + 10.0f);
-            model = glm::rotate(model, glm::radians(angle) * (float)glfwGetTime() * (float)0.2f, glm::vec3(1.0f, 0.3f, 0.5f));
-            glm::mat3 normalMatrix = glm::transpose(glm::inverse(model));
-            program->set3Matrix("normalMatrix", normalMatrix);            
-            program->set4Matrix("model", model);
+        //glDrawArrays(GL_TRIANGLES, 0, 36);
 
-            glDrawArrays(GL_TRIANGLES, 0, 36);
+        //calculate model matrix for each object and pass it into our shader program
+        glm::mat4 model = glm::mat4(1.0f); // initialize matrix to identity matrix
+        model = glm::translate(model, cubePositions[0]);        
+        float angle = 20.0f;
+        model = glm::rotate(model, glm::radians(angle) * (float)glfwGetTime() * (float)0.1f, glm::vec3(1.0f, 0.3f, 0.5f));
+        glm::mat3 normalMatrix = glm::transpose(glm::inverse(model));
+        program->set3Matrix("normalMatrix", normalMatrix);            
+        program->set4Matrix("model", model);
+
+        // give material components to shader
+        program->setVec3("material.ambient", 1.0f, 0.5f, 0.31f);
+        program->setVec3("material.diffuse", 1.0f, 0.5f, 0.31f);
+        program->setVec3("material.specular", 0.5f, 0.5f, 0.5f);
+        program->setFloat("material.shininess", 32.0f);
+
+        glDrawArrays(GL_TRIANGLES, 0, 36);
 
             // If we use indices we have to draw like this
-            //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);            
-        }
+
 
         glBindVertexArray(lightVAO);
 
@@ -511,6 +525,7 @@ int main() {
         lightProgram->set4Matrix("projection", projection);
         lightProgram->set4Matrix("view", view);
         lightProgram->set4Matrix("model", modelLight);
+        lightProgram->setVec3("uColor", lightColor);
         
         glDrawArrays(GL_TRIANGLES, 0, 36);        
 
