@@ -16,3 +16,8 @@ With playing materials
 Different textures for diffuse, specular and emissive properties have been implemented in shader and application. with time uniform, green emission is animated.
 
 ![alt text](./gifs/textureMaps.gif)
+
+
+Later that day, I was able to implement directional, point and spot lights
+
+![alt text](./gifs/spot_light.gif)

@@ -139,7 +139,7 @@ int main() {
     glEnable(GL_DEPTH_TEST);
 
     // Initialize shader program from sources
-    ShaderProgram *program      = new ShaderProgram("shaders/basicTexture/shader_with_maps.vert","shaders/basicTexture/shader_with_maps.frag");
+    ShaderProgram *program      = new ShaderProgram("shaders/lightCasters/light_casters.vert","shaders/lightCasters/light_casters.frag");
     ShaderProgram *lightProgram = new ShaderProgram("shaders/lightShader/shader_light.vert", "shaders/lightShader/shader_light.frag");
 
     // create vertex array object
@@ -218,12 +218,12 @@ int main() {
 
     unsigned int diffuseMap = loadTexture("../assets/textures/boxMaps/diffuseMap.png", GL_RGBA);
     unsigned int specularMap = loadTexture("../assets/textures/boxMaps/specularMap.png", GL_RGBA);
-    unsigned int emissionMap = loadTexture("../assets/textures/boxMaps/emissionMap.jpg", GL_RGB);
+    //unsigned int emissionMap = loadTexture("../assets/textures/boxMaps/emissionMap.jpg", GL_RGB);
 
     program->use();
     program->setInt("material.diffuse", 0);
     program->setInt("material.specular", 1);
-    program->setInt("material.emission", 2);     
+    //program->setInt("material.emission", 2);     
     // -------------------------------------------------- //
 
 
@@ -282,10 +282,39 @@ int main() {
         glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f);
 
 
-        program->setVec3("light.position", lightPos.x, lightPos.y, lightPos.z);        
-        program->setVec3("light.ambient", ambientColor);
-        program->setVec3("light.diffuse", diffuseColor);
-        program->setVec3("light.specular", 1.0f, 1.0f, 1.0f);        
+        // Directional light
+        //program->setVec3("dLight.direction", -0.2f, -1.0f, -0.3f);        
+        //program->setVec3("dLight.ambient", ambientColor);
+        //program->setVec3("dLight.diffuse", diffuseColor);
+        //program->setVec3("dLight.specular", 1.0f, 1.0f, 1.0f);        
+
+
+        // Point light
+        //program->setVec3("pLight.position", lightPos);
+        //program->setVec3("pLight.ambient", ambientColor);
+        //program->setVec3("pLight.diffuse", diffuseColor);
+        //program->setVec3("pLight.specular", 1.0f, 1.0f, 1.0f);
+
+        // we want our point light to light 50m
+        // reference --> Ogre3D
+        //program->setFloat("pLight.constant", 1.0f);
+        //program->setFloat("pLight.linear", 0.09f);
+        //program->setFloat("pLight.quadratic", 0.032f);
+
+
+        // Spot Light
+        program->setVec3("sLight.position", camera.Position);
+        program->setVec3("sLight.direction", camera.Front);
+        program->setFloat("sLight.cutOff", glm::cos(glm::radians(12.5f)));
+        program->setFloat("sLight.outerCutOff", glm::cos(glm::radians(17.5f)));
+
+        program->setVec3("sLight.ambient", ambientColor);
+        program->setVec3("sLight.diffuse", diffuseColor);
+        program->setVec3("sLight.specular", 1.0f, 1.0f, 1.0f);
+
+        program->setFloat("sLight.constant", 1.0f);
+        program->setFloat("sLight.linear", 0.03f);
+        program->setFloat("sLight.quadratic", 0.012f);             
 
         // Send view position to shader program
         program->setVec3("viewPos", camera.Position);
@@ -302,8 +331,8 @@ int main() {
         glBindTexture(GL_TEXTURE_2D, diffuseMap);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, specularMap);
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, emissionMap);
+        //glActiveTexture(GL_TEXTURE2);
+        //glBindTexture(GL_TEXTURE_2D, emissionMap);
         // render cubes
         glBindVertexArray(VAO);
 
@@ -315,36 +344,41 @@ int main() {
         //glDrawArrays(GL_TRIANGLES, 0, 36);
 
         //calculate model matrix for each object and pass it into our shader program
-        glm::mat4 model = glm::mat4(1.0f); // initialize matrix to identity matrix
-        model = glm::translate(model, cubePositions[0]);        
-        float angle = 20.0f;
-        model = glm::rotate(model, glm::radians(angle) * 20 * (float)glfwGetTime() * (float)0.1f, glm::vec3(1.0f, 0.3f, 0.5f));
-        glm::mat3 normalMatrix = glm::transpose(glm::inverse(model));
-        program->set3Matrix("normalMatrix", normalMatrix);            
-        program->set4Matrix("model", model);
 
         // give material components to shader
         program->setVec3("material.specular", 0.5f, 0.5f, 0.5f);
         program->setFloat("material.shininess", 32.0f);
 
+        for(unsigned int i=0; i<10; i++)
+        {
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, cubePositions[i]);
+            float angle = 20.0f * i;
+            model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+            glm::mat3 normalMatrix = glm::transpose(glm::inverse(model));
 
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+            program->set4Matrix("model", model);            
+            program->set3Matrix("normalMatrix", normalMatrix);
+
+            glDrawArrays(GL_TRIANGLES, 0, 36);            
+        }
+
 
             // If we use indices we have to draw like this
 
+        // no need to draw light object since we have a spot light
+        //glBindVertexArray(lightVAO);
 
-        glBindVertexArray(lightVAO);
-
-        glm::mat4 modelLight = glm::mat4(1.0f);
-        modelLight = glm::translate(modelLight, lightPos);
-        modelLight = glm::scale(modelLight, glm::vec3(0.1f));
-        lightProgram->use();
-        lightProgram->set4Matrix("projection", projection);
-        lightProgram->set4Matrix("view", view);
-        lightProgram->set4Matrix("model", modelLight);
-        lightProgram->setVec3("uColor", lightColor);
+        //glm::mat4 modelLight = glm::mat4(1.0f);
+        //modelLight = glm::translate(modelLight, lightPos);
+        //modelLight = glm::scale(modelLight, glm::vec3(0.1f));
+        //lightProgram->use();
+        //lightProgram->set4Matrix("projection", projection);
+        //lightProgram->set4Matrix("view", view);
+        //lightProgram->set4Matrix("model", modelLight);
+        //lightProgram->setVec3("uColor", lightColor);
         
-        glDrawArrays(GL_TRIANGLES, 0, 36);        
+        //glDrawArrays(GL_TRIANGLES, 0, 36);        
 
         // swap the color buffer (a large 2D buffer that
         //                        contains color values for 
