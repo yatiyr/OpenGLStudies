@@ -5,13 +5,7 @@ in vec3 FragPos;
 in vec3 Normal;
 in vec2 TexCoord;
 
-// keep a struct for Material Properties
-struct Material {
-    sampler2D diffuse;
-    sampler2D specular;
-    float shininess;
-};
-
+// -------------------- DIRECTIONAL LIGHT DEFINITIONS ----------------------------- //
 struct DirectionalLight {
     vec3 direction;
 
@@ -19,8 +13,15 @@ struct DirectionalLight {
     vec3 diffuse;
     vec3 specular;
 };
+uniform DirectionalLight directionalLight;
 
+vec3 CalcDirectionalLight(DirectionalLight light, vec3 normal, vec3 viewDir, vec3 diffColor, vec3 specColor);
+// --------------------------------------------------------------------------------- //
+
+
+// ---------------------- POINT LIGHT DEFINITIONS ---------------------------------- //
 struct PointLight {
+
     vec3 position;
 
     vec3 ambient;
@@ -29,10 +30,15 @@ struct PointLight {
 
     float constant;
     float linear;
-    float quadratic;
+    float quadratic;    
 };
+#define POINT_LIGHT_NUMBER 4
+uniform PointLight pointLights[POINT_LIGHT_NUMBER];
 
+vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir, vec3 diffColor, vec3 specColor);
+// ---------------------------------------------------------------------------------- //
 
+// ------------------------- SPOT LIGHT DEFINITIONS --------------------------------- //
 struct SpotLight {
     vec3 position;
     vec3 direction;
@@ -48,64 +54,142 @@ struct SpotLight {
     float quadratic;    
 };
 
+uniform SpotLight spotLight;
+
+vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir, vec3 diffColor, vec3 specColor);
+// ------------------------------------------------------------------------------------- //
+
+// ------------------------------ UTILITY FUNCTIONS ------------------------------------ //
+vec3 getDiffColor();
+vec3 getSpecColor();
+// -------------------------------------------------------------------------------------- //
+
+
+// keep a struct for Material Properties
+struct Material {
+    sampler2D diffuse;
+    sampler2D specular;
+    float shininess;
+};
+
 uniform vec3 viewPos;
 uniform Material material;
-
-uniform DirectionalLight dLight;
-uniform PointLight       pLight;
-uniform SpotLight        sLight;
-
 uniform float time;
 
 void main()
 {
 
-    vec3 lightDir = normalize(sLight.position - FragPos);
+    // properties
+    vec3 norm      = normalize(Normal);
+    vec3 viewDir   = normalize(viewPos - FragPos);
+    vec3 diffColor = getDiffColor();
+    vec3 specColor = getSpecColor();
 
-    // ----------- Calculations for SpotLights ---------------------- //
-    float theta     = dot(lightDir, normalize(-sLight.direction));
-    float epsilon   = sLight.cutOff - sLight.outerCutOff;
-    float intensity =  clamp((theta - sLight.outerCutOff) / epsilon, 0.0, 1.0);
+    // calculate colors from directional light
+    vec3 result = CalcDirectionalLight(directionalLight, norm, viewDir, diffColor, specColor);
 
-    // -------------------------------------------------------------- //
+    // iterate point lights and calculate their contribution to the scene
+    for(int i=0; i<POINT_LIGHT_NUMBER; i++)
+    {
+        result += CalcPointLight(pointLights[i], norm, FragPos, viewDir, diffColor, specColor);
+    }
 
-    // ---------- Attenuation Calculation for point lights ---------- //
-    float distance = length(sLight.position - FragPos);
-    float attenuation = 1.0 / (sLight.constant + sLight.linear * distance + 
-                                   sLight.quadratic * (distance * distance));
+    // calculate colors from spot light
+    result += CalcSpotLight(spotLight, norm, FragPos, viewDir, diffColor, specColor);
 
-    // -------------------------------------------------------------- //
-
-    // --------------- Simulate Ambient Light --------------- //
-    vec3 ambient = sLight.ambient * vec3(texture(material.diffuse, TexCoord));
-    // ------------------------------------------------------ //
-
-
-    // ---------------- Simulate Diffuse Light --------------- //
-    vec3 norm = normalize(Normal);
-
-    // find cosine between norm and lightDir
-    float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuse = sLight.diffuse * diff * vec3(texture(material.diffuse, TexCoord));
-    // ------------------------------------------------------ //
+    FragColor = vec4(result, 1.0);
+}
 
 
-    // -------------- Simulate Specular Light --------------- //
-    vec3 viewDir = normalize(viewPos - FragPos);
-    vec3 reflectDir = reflect(-lightDir, norm);
 
-    // power is shininess
+// Directional light calculation implementation
+vec3 CalcDirectionalLight(DirectionalLight light, vec3 normal, vec3 viewDir, vec3 diffColor, vec3 specColor)
+{
+    vec3 lightDir = normalize(-light.direction);
+    
+    // diffuse shading
+    float dif = max(dot(normal, lightDir), 0.0);
+    // specular shading
+    vec3 reflectDir = reflect(-lightDir, normal);
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
-    vec3 specular = sLight.specular * spec * vec3(texture(material.specular, TexCoord));
-    // ------------------------------------------------------ //
+
+    // sum results
+    vec3 ambient  = light.ambient  * diffColor;
+    vec3 diffuse  = light.diffuse  * dif  * diffColor;
+    vec3 specular = light.specular * spec * specColor;
+    return (ambient + diffuse + specular);
+
+}
+
+// Point light calculation implementation
+vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir, vec3 diffColor, vec3 specColor)
+{
+    vec3 lightDir = normalize(light.position - fragPos);
+
+    // diffuse shading
+    float dif = max(dot(normal, lightDir), 0.0);
+    // specular shading
+    vec3 reflectDir = reflect(-lightDir, normal);
+    float spec      = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+    // attenuation
+    float dist        = length(light.position - fragPos);
+    float attenuation = 1.0 / (light.constant + light.linear * dist + light.quadratic * (dist * dist));
+
+    // sum results
+    vec3 ambient  = light.ambient  * diffColor;
+    vec3 diffuse  = light.diffuse  * dif  * diffColor;
+    vec3 specular = light.specular * spec * specColor;
+
+    ambient  *= attenuation;
+    diffuse  *= attenuation;
+    specular *= attenuation;
+
+    return (ambient + diffuse + specular);
+}
+
+// Spot light calculation implementation
+vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir, vec3 diffColor, vec3 specColor)
+{
+    vec3 lightDir = normalize(light.position - FragPos);
+
+    // calculate intensity for spot light
+    float theta     = dot(lightDir, normalize(-light.direction));
+    float epsilon   = light.cutOff - light.outerCutOff;
+    float intensity =  clamp((theta - light.outerCutOff) / epsilon, 0.0, 1.0);
+
+    // diffuse shading
+    float diff = max(dot(normal, lightDir), 0.0);
+
+
+    // specular shading
+    vec3 reflectDir = reflect(-lightDir, normal);
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+
+    vec3 ambient = light.ambient * diffColor;
+    vec3 diffuse = light.diffuse * diff * vec3(texture(material.diffuse, TexCoord));
+    vec3 specular = light.specular * spec * vec3(texture(material.specular, TexCoord));    
+
+    // attenuation
+    float dist = length(light.position - FragPos);
+    float attenuation = 1.0 / (light.constant + light.linear * dist + light.quadratic * (dist * dist));
 
     ambient  *= attenuation;
     diffuse  *= attenuation * intensity;
     specular *= attenuation * intensity;
 
     // compute frag color here by combining ambient diffuse and specular components
-    vec3 result = ambient + diffuse + specular;
-    FragColor = vec4(result, 1.0);
-
-
+    return (ambient + diffuse + specular);
 }
+
+
+// ----------------------------------- UTILITY FUNCTIONS IMPLEMENTATIONS -------------------------------- //
+vec3 getDiffColor()
+{
+    return vec3(texture(material.diffuse, TexCoord)); 
+}
+
+vec3 getSpecColor()
+{
+    return vec3(texture(material.specular, TexCoord));
+}
+// ------------------------------------------------------------------------------------------------------- //

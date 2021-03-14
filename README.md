@@ -21,3 +21,13 @@ Different textures for diffuse, specular and emissive properties have been imple
 Later that day, I was able to implement directional, point and spot lights
 
 ![alt text](./gifs/spot_light.gif)
+
+# Midnight Update 15th March 2021 - Multiple Light sources
+
+As in the tutorial
+
+* there is one directional light
+* one flashligt
+* 4 point lights having different colors
+
+![alt text](./gifs/multiple_lights.gif)

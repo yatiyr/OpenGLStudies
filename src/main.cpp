@@ -278,43 +278,48 @@ int main() {
         lightColor.y = 1.0f;  //std::max(sin(glfwGetTime() * 0.7f), 0.6);
         lightColor.z = 1.0f;  //std::max(sin(glfwGetTime() * 1.3f), 0.9);
 
-        glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
-        glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f);
+        glm::vec3 diffuseColor = lightColor * glm::vec3(0.2f);
+        glm::vec3 ambientColor = diffuseColor * glm::vec3(0.1f);
 
 
         // Directional light
-        //program->setVec3("dLight.direction", -0.2f, -1.0f, -0.3f);        
-        //program->setVec3("dLight.ambient", ambientColor);
-        //program->setVec3("dLight.diffuse", diffuseColor);
-        //program->setVec3("dLight.specular", 1.0f, 1.0f, 1.0f);        
+        program->setVec3("directionalLight.direction", -0.2f, -1.0f, -0.3f);        
+        program->setVec3("directionalLight.ambient", ambientColor);
+        program->setVec3("directionalLight.diffuse", diffuseColor);
+        program->setVec3("directionalLight.specular", 1.0f, 1.0f, 1.0f);        
 
 
-        // Point light
-        //program->setVec3("pLight.position", lightPos);
-        //program->setVec3("pLight.ambient", ambientColor);
-        //program->setVec3("pLight.diffuse", diffuseColor);
-        //program->setVec3("pLight.specular", 1.0f, 1.0f, 1.0f);
+        // Point lights
+        for(int i=0; i<4; i++)
+        {
+            glm::vec3 diffuseColor = pointLightColors[i] * glm::vec3(0.5);
+            glm::vec3 ambientColor = pointLightColors[i] * glm::vec3(0.2f);
 
-        // we want our point light to light 50m
-        // reference --> Ogre3D
-        //program->setFloat("pLight.constant", 1.0f);
-        //program->setFloat("pLight.linear", 0.09f);
-        //program->setFloat("pLight.quadratic", 0.032f);
+            program->setVec3("pointLights[" + std::to_string(i) + "].position", pointLightPositions[i]);
+            program->setVec3("pointLights[" + std::to_string(i) + "].ambient", ambientColor);
+            program->setVec3("pointLights[" + std::to_string(i) + "].diffuse", diffuseColor);
+            program->setVec3("pointLights[" + std::to_string(i) + "].specular", 1.0f, 1.0f, 1.0f);
+
+            program->setFloat("pointLights[" + std::to_string(i) + "].constant", 1.0f);
+            program->setFloat("pointLights[" + std::to_string(i) + "].linear", 0.02f);
+            program->setFloat("pointLights[" + std::to_string(i) + "].quadratic", 0.032f);             
+
+        }
 
 
         // Spot Light
-        program->setVec3("sLight.position", camera.Position);
-        program->setVec3("sLight.direction", camera.Front);
-        program->setFloat("sLight.cutOff", glm::cos(glm::radians(12.5f)));
-        program->setFloat("sLight.outerCutOff", glm::cos(glm::radians(17.5f)));
+        program->setVec3("spotLight.position", camera.Position);
+        program->setVec3("spotLight.direction", camera.Front);
+        program->setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+        program->setFloat("spotLight.outerCutOff", glm::cos(glm::radians(17.5f)));
 
-        program->setVec3("sLight.ambient", ambientColor);
-        program->setVec3("sLight.diffuse", diffuseColor);
-        program->setVec3("sLight.specular", 1.0f, 1.0f, 1.0f);
+        program->setVec3("spotLight.ambient", ambientColor);
+        program->setVec3("spotLight.diffuse", diffuseColor);
+        program->setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
 
-        program->setFloat("sLight.constant", 1.0f);
-        program->setFloat("sLight.linear", 0.03f);
-        program->setFloat("sLight.quadratic", 0.012f);             
+        program->setFloat("spotLight.constant", 1.0f);
+        program->setFloat("spotLight.linear", 0.03f);
+        program->setFloat("spotLight.quadratic", 0.012f);             
 
         // Send view position to shader program
         program->setVec3("viewPos", camera.Position);
@@ -353,8 +358,8 @@ int main() {
         {
             glm::mat4 model = glm::mat4(1.0f);
             model = glm::translate(model, cubePositions[i]);
-            float angle = 20.0f * i;
-            model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+            float angle = 20.0f * (i + 10.0f);
+            model = glm::rotate(model, glm::radians(angle) * (float)glfwGetTime() * 0.2f, glm::vec3(1.0f, 0.3f, 0.5f));
             glm::mat3 normalMatrix = glm::transpose(glm::inverse(model));
 
             program->set4Matrix("model", model);            
@@ -366,19 +371,22 @@ int main() {
 
             // If we use indices we have to draw like this
 
-        // no need to draw light object since we have a spot light
-        //glBindVertexArray(lightVAO);
+        glBindVertexArray(lightVAO);
+        lightProgram->use();
+        lightProgram->set4Matrix("projection", projection);
+        lightProgram->set4Matrix("view", view);
 
-        //glm::mat4 modelLight = glm::mat4(1.0f);
-        //modelLight = glm::translate(modelLight, lightPos);
-        //modelLight = glm::scale(modelLight, glm::vec3(0.1f));
-        //lightProgram->use();
-        //lightProgram->set4Matrix("projection", projection);
-        //lightProgram->set4Matrix("view", view);
-        //lightProgram->set4Matrix("model", modelLight);
-        //lightProgram->setVec3("uColor", lightColor);
-        
-        //glDrawArrays(GL_TRIANGLES, 0, 36);        
+        for(int i=0; i<4; i++)
+        {
+            glm::mat4 modelLight = glm::mat4(1.0f);
+            modelLight = glm::translate(modelLight, pointLightPositions[i]);
+            modelLight = glm::scale(modelLight, glm::vec3(0.1f));
+
+            lightProgram->set4Matrix("model", modelLight);
+            lightProgram->setVec3("uColor", pointLightColors[i]);
+            glDrawArrays(GL_TRIANGLES, 0, 36);            
+        }
+                
 
         // swap the color buffer (a large 2D buffer that
         //                        contains color values for 

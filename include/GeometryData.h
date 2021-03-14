@@ -189,3 +189,17 @@ glm::vec3 cubeColors[] = {
     glm::vec3(0.968f, 0.803f, 0.031f), // yellow
     glm::vec3(0.698f, 0.968f, 0.031f)    // yellow-green      
 };
+
+glm::vec3 pointLightPositions[] = {
+	glm::vec3( 0.7f,  0.2f,  2.0f),
+	glm::vec3( 2.3f, -3.3f, -4.0f),
+	glm::vec3(-4.0f,  2.0f, -12.0f),
+	glm::vec3( 0.0f,  0.0f, -3.0f)    
+};
+
+glm::vec3 pointLightColors[] = {
+    glm::vec3(0.941f, 0.f, 0.6f),
+    glm::vec3(0.729f, 0.f, 0.941f),
+    glm::vec3(0.f, 0.149f, 0.941f),
+    glm::vec3(0.f, 0.941f, 0.627f)
+};
