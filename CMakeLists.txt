@@ -15,7 +15,7 @@ file(GLOB_RECURSE HEADER_FILES
 
 link_directories(${CMAKE_SOURCE_DIR}/lib)
 
-configure_file(src/helpers/RootDir.h.in src/helpers/RootDir.h)
+configure_file(src/helpers/RootDir.h.in src/RootDir.h)
 include_directories(${CMAKE_BINARY_DIR}/src)
 
 add_executable(${PROJECT_NAME} ${HEADER_FILES} ${SOURCE_FILES})
