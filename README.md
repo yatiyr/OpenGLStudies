@@ -31,3 +31,13 @@ As in the tutorial
 * 4 point lights having different colors
 
 ![alt text](./gifs/multiple_lights.gif)
+
+
+# Midnight Update 19th March 2021 - First Model
+
+Model and mesh classes implemented using Assimp library. I can load models and apply glsl shaders and use it with my point lights, directional light and flashlight. 
+
+Now, I guess I need to dive in some advanced stuff in OpenGL. At least tutorial says that :D
+
+![alt text](./gifs/model.gif)
+
