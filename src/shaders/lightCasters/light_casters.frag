@@ -97,7 +97,7 @@ void main()
     // calculate colors from spot light
     result += CalcSpotLight(spotLight, norm, FragPos, viewDir, diffColor, specColor);
 
-    FragColor = vec4(result, 1.0);
+    FragColor = vec4(0.0, 0.0, 0.0, 1.0);
 }
 
 

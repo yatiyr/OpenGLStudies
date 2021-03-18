@@ -16,6 +16,10 @@
 
 #include <iostream>
 
+#include <Model.h>
+#include <RootDir.h>
+
+
 // GLOBAL VARIABLES FOR DELTATIME
 float deltaTime = 0.0f; // Time between current and the last frame
 float lastFrame = 0.0f; // Time of last frame
@@ -139,15 +143,16 @@ int main() {
     glEnable(GL_DEPTH_TEST);
 
     // Initialize shader program from sources
-    ShaderProgram *program      = new ShaderProgram("shaders/lightCasters/light_casters.vert","shaders/lightCasters/light_casters.frag");
+    ShaderProgram program("shaders/modelShader/model_shader.vert","shaders/modelShader/model_shader.frag");
     ShaderProgram *lightProgram = new ShaderProgram("shaders/lightShader/shader_light.vert", "shaders/lightShader/shader_light.frag");
 
-    // create vertex array object
-    unsigned int VAO;
-    glGenVertexArrays(1, &VAO);
-    glBindVertexArray(VAO);
 
-    // Initialize vertex buffer object to send vertex data to GPU at once
+
+    // ------------------- FOR CREATING LIGHT BUFFERS ------------------------ //
+    unsigned int lightVAO;
+    glGenVertexArrays(1, &lightVAO);
+    glBindVertexArray(lightVAO);
+
     unsigned int VBO;
     glGenBuffers(1, &VBO);
 
@@ -163,43 +168,6 @@ int main() {
     // GL_DYNAMIC_DRAW : the data is changed a lot and used many times
     glBufferData(GL_ARRAY_BUFFER, sizeof(verticesDiffuseMap), verticesDiffuseMap, GL_STATIC_DRAW);
 
-    // create EBO to store indices
-    //unsigned int EBO;
-    //glGenBuffers(1, &EBO);
-
-    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    //glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-    // glVertexAttribPointer tells OpenGL how to interpret the vertex data (per vertex attribute)
-    // param 1 -> which vertex attribute we want to configure. In the shader we specified
-    //            layout (location = 0). This sets the location of the vertex attribute to 0
-    //            and since we want to pass data to this vertex attribute we pass in 0
-    //
-    // param 2 -> size of the vertex attribute. Vertex attribute is vec3 so we have 3 values
-    // param 3 -> type of the data which is GL_FLOAT
-    // param 4 -> if we want normalized data (between -1,0,1)
-    // param 5 -> tells us the space between consecutive vertex attributes (stride)
-    // param 6 -> this is the offset of where the position data begins in the buffer
-    //            since the position data is at the start  of the data array this value
-    //            is just 0.
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-    glEnableVertexAttribArray(2);
-
-    // unbind VAO -> not necessary they say
-    glBindVertexArray(0);
-
-
-    // ------------------- FOR CREATING LIGHT BUFFERS ------------------------ //
-    unsigned int lightVAO;
-    glGenVertexArrays(1, &lightVAO);
-    glBindVertexArray(lightVAO);
-
     // we can use container's VBO. It has the data already
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     // set vertex attribPointer
@@ -208,29 +176,17 @@ int main() {
 
     glBindVertexArray(0);
     // ----------------------------------------------------------------------- //
-
-
+    program.use();
+    program.setFloat("material.shininess", 32.0f);    
     // ------------------ SET TEXTURE ------------------- //
 
     // flip loaded textures vertically
     setVerticalFlip(true);
-    pixelStoreICalls();  
+    std::string pathBackpack = ROOT_DIR + std::string("assets/models/backpack/backpack.obj");
 
-    unsigned int diffuseMap = loadTexture("../assets/textures/boxMaps/diffuseMap.png", GL_RGBA);
-    unsigned int specularMap = loadTexture("../assets/textures/boxMaps/specularMap.png", GL_RGBA);
-    //unsigned int emissionMap = loadTexture("../assets/textures/boxMaps/emissionMap.jpg", GL_RGB);
-
-    program->use();
-    program->setInt("material.diffuse", 0);
-    program->setInt("material.specular", 1);
-    //program->setInt("material.emission", 2);     
-    // -------------------------------------------------- //
+    Model m(pathBackpack.c_str());
 
 
-    // Tell openGL for each sample2D to which texture unit it belongs to (has to be done once)
-    //program->use();
-    //program->setInt("texture1", 0);
-    //program->setInt("texture2", 1);
 
  
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -263,10 +219,10 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // activate our shader program
-        program->use();
+        program.use();
 
         // send time uniform for animation
-        program->setFloat("time", currentFrame);
+        program.setFloat("time", currentFrame);
 
         // Send light position to shader program
         lightPos.x = sin(glfwGetTime() * 1) * 3.0f;
@@ -283,10 +239,10 @@ int main() {
 
 
         // Directional light
-        program->setVec3("directionalLight.direction", -0.2f, -1.0f, -0.3f);        
-        program->setVec3("directionalLight.ambient", ambientColor);
-        program->setVec3("directionalLight.diffuse", diffuseColor);
-        program->setVec3("directionalLight.specular", 1.0f, 1.0f, 1.0f);        
+        program.setVec3("directionalLight.direction", -0.2f, -1.0f, -0.3f);        
+        program.setVec3("directionalLight.ambient", ambientColor);
+        program.setVec3("directionalLight.diffuse", diffuseColor);
+        program.setVec3("directionalLight.specular", 1.0f, 1.0f, 1.0f);        
 
 
         // Point lights
@@ -295,81 +251,53 @@ int main() {
             glm::vec3 diffuseColor = pointLightColors[i] * glm::vec3(0.5);
             glm::vec3 ambientColor = pointLightColors[i] * glm::vec3(0.2f);
 
-            program->setVec3("pointLights[" + std::to_string(i) + "].position", pointLightPositions[i]);
-            program->setVec3("pointLights[" + std::to_string(i) + "].ambient", ambientColor);
-            program->setVec3("pointLights[" + std::to_string(i) + "].diffuse", diffuseColor);
-            program->setVec3("pointLights[" + std::to_string(i) + "].specular", 1.0f, 1.0f, 1.0f);
+            program.setVec3("pointLights[" + std::to_string(i) + "].position", pointLightPositions[i]);
+            program.setVec3("pointLights[" + std::to_string(i) + "].ambient", ambientColor);
+            program.setVec3("pointLights[" + std::to_string(i) + "].diffuse", diffuseColor);
+            program.setVec3("pointLights[" + std::to_string(i) + "].specular", 1.0f, 1.0f, 1.0f);
 
-            program->setFloat("pointLights[" + std::to_string(i) + "].constant", 1.0f);
-            program->setFloat("pointLights[" + std::to_string(i) + "].linear", 0.02f);
-            program->setFloat("pointLights[" + std::to_string(i) + "].quadratic", 0.032f);             
+            program.setFloat("pointLights[" + std::to_string(i) + "].constant", 1.0f);
+            program.setFloat("pointLights[" + std::to_string(i) + "].linear", 0.02f);
+            program.setFloat("pointLights[" + std::to_string(i) + "].quadratic", 0.032f);             
 
         }
 
 
         // Spot Light
-        program->setVec3("spotLight.position", camera.Position);
-        program->setVec3("spotLight.direction", camera.Front);
-        program->setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
-        program->setFloat("spotLight.outerCutOff", glm::cos(glm::radians(17.5f)));
+        program.setVec3("spotLight.position", camera.Position);
+        program.setVec3("spotLight.direction", camera.Front);
+        program.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+        program.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(17.5f)));
 
-        program->setVec3("spotLight.ambient", ambientColor);
-        program->setVec3("spotLight.diffuse", diffuseColor);
-        program->setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
+        program.setVec3("spotLight.ambient", ambientColor);
+        program.setVec3("spotLight.diffuse", diffuseColor);
+        program.setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
 
-        program->setFloat("spotLight.constant", 1.0f);
-        program->setFloat("spotLight.linear", 0.03f);
-        program->setFloat("spotLight.quadratic", 0.012f);             
+        program.setFloat("spotLight.constant", 1.0f);
+        program.setFloat("spotLight.linear", 0.03f);
+        program.setFloat("spotLight.quadratic", 0.012f);             
 
         // Send view position to shader program
-        program->setVec3("viewPos", camera.Position);
+        program.setVec3("viewPos", camera.Position);
 
         // pass projection matrix to shader -> changes every frame because of camera
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float) SCR_HEIGHT, 0.1f, 100.0f);
-        program->set4Matrix("projection", projection);
+        program.set4Matrix("projection", projection);
 
         // camera/view transformation
         glm::mat4 view = camera.GetViewMatrix();
-        program->set4Matrix("view", view);
+        program.set4Matrix("view", view);
 
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, diffuseMap);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, specularMap);
-        //glActiveTexture(GL_TEXTURE2);
-        //glBindTexture(GL_TEXTURE_2D, emissionMap);
-        // render cubes
-        glBindVertexArray(VAO);
+        glm::mat4 model(1.0f);
+        model = glm::translate(model, glm::vec3(0.0,-5.0f,-3.0f));
+        model = glm::scale(model, glm::vec3(0.5f,0.5f,0.5f));
 
-        //glm::mat4 model = glm::mat4(1.0f);
-        //model = glm::translate(model, cubePositions[0]);
-        //program->set4Matrix("model", model);
-        //glm::mat3 normalMatrix = glm::transpose(glm::inverse(model));
-        //program->set3Matrix("normalMatrix", normalMatrix);
-        //glDrawArrays(GL_TRIANGLES, 0, 36);
+        glm::mat3 normalMatrix = glm::transpose(glm::inverse(model));
 
-        //calculate model matrix for each object and pass it into our shader program
-
-        // give material components to shader
-        program->setVec3("material.specular", 0.5f, 0.5f, 0.5f);
-        program->setFloat("material.shininess", 32.0f);
-
-        for(unsigned int i=0; i<10; i++)
-        {
-            glm::mat4 model = glm::mat4(1.0f);
-            model = glm::translate(model, cubePositions[i]);
-            float angle = 20.0f * (i + 10.0f);
-            model = glm::rotate(model, glm::radians(angle) * (float)glfwGetTime() * 0.2f, glm::vec3(1.0f, 0.3f, 0.5f));
-            glm::mat3 normalMatrix = glm::transpose(glm::inverse(model));
-
-            program->set4Matrix("model", model);            
-            program->set3Matrix("normalMatrix", normalMatrix);
-
-            glDrawArrays(GL_TRIANGLES, 0, 36);            
-        }
-
-
-            // If we use indices we have to draw like this
+        program.set4Matrix("model", model);
+        program.set3Matrix("normalMatrix", normalMatrix);
+        
+        m.Draw(program);
 
         glBindVertexArray(lightVAO);
         lightProgram->use();
@@ -424,9 +352,8 @@ int main() {
 
     }
 
-    glDeleteVertexArrays(1, &VAO);
+    glDeleteVertexArrays(1, &lightVAO);
     glDeleteBuffers(1, &VBO);
-    delete program;
     delete lightProgram;
     // To exit gracefully, we clean all of GLFW's
     // resources that were allocated.

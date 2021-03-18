@@ -76,26 +76,17 @@ public:
             {
                 number = std::to_string(nSpecular++);
                 glUniform1i(glGetUniformLocation(shaderProgram.id, ("material.texture_specular" + number).c_str()), i);
-            }
-            else if(type == TextureType::texture_normal)
-            {
-                number = std::to_string(nNormal++);
-                glUniform1i(glGetUniformLocation(shaderProgram.id, ("material.texture_normal" + number).c_str()), i);
-            }
-            else if(type == TextureType::texture_height)
-            {
-                number = std::to_string(nHeight++);
-                glUniform1i(glGetUniformLocation(shaderProgram.id, ("material.texture_height" + number).c_str()), i);
-            }                        
+            }                    
 
             glBindTexture(GL_TEXTURE_2D, textures[i].id);         
         }
-        glActiveTexture(GL_TEXTURE0);
 
         // draw mesh
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
+
+        glActiveTexture(GL_TEXTURE0);        
     }
 
 private:
@@ -103,14 +94,14 @@ private:
 
     void setupMesh()
     {
-        glGenBuffers(1, &VAO);
+        glGenVertexArrays(1, &VAO);
         glGenBuffers(1, &VBO);
         glGenBuffers(1, &EBO);
 
         glBindVertexArray(VAO);
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
-        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertice[0], GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
@@ -139,11 +130,4 @@ private:
         glBindVertexArray(0);
     }
 };
-
-
-
-
-
-
-
 #endif
