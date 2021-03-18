@@ -248,8 +248,8 @@ int main() {
         // Point lights
         for(int i=0; i<4; i++)
         {
-            glm::vec3 diffuseColor = pointLightColors[i] * glm::vec3(0.5);
-            glm::vec3 ambientColor = pointLightColors[i] * glm::vec3(0.2f);
+            glm::vec3 diffuseColor = pointLightColors[i] * glm::vec3(0.7);
+            glm::vec3 ambientColor = pointLightColors[i] * glm::vec3(0.5f);
 
             program.setVec3("pointLights[" + std::to_string(i) + "].position", pointLightPositions[i]);
             program.setVec3("pointLights[" + std::to_string(i) + "].ambient", ambientColor);
@@ -257,8 +257,8 @@ int main() {
             program.setVec3("pointLights[" + std::to_string(i) + "].specular", 1.0f, 1.0f, 1.0f);
 
             program.setFloat("pointLights[" + std::to_string(i) + "].constant", 1.0f);
-            program.setFloat("pointLights[" + std::to_string(i) + "].linear", 0.02f);
-            program.setFloat("pointLights[" + std::to_string(i) + "].quadratic", 0.032f);             
+            program.setFloat("pointLights[" + std::to_string(i) + "].linear", 0.2f);
+            program.setFloat("pointLights[" + std::to_string(i) + "].quadratic", 0.302f);             
 
         }
 
@@ -289,8 +289,8 @@ int main() {
         program.set4Matrix("view", view);
 
         glm::mat4 model(1.0f);
-        model = glm::translate(model, glm::vec3(0.0,-5.0f,-3.0f));
-        model = glm::scale(model, glm::vec3(0.5f,0.5f,0.5f));
+        model = glm::translate(model, glm::vec3(-1.0, 2.0f,-3.0f));
+        model = glm::scale(model, glm::vec3(1.f,1.f,1.f));
 
         glm::mat3 normalMatrix = glm::transpose(glm::inverse(model));
 
