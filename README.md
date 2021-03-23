@@ -52,3 +52,11 @@ Before diving into advanced stuff, I saw that I have to learn how to add new mod
   *  sponza scene  => kevin.kayu (https://sketchfab.com/kevin.kayu)
 
 ![alt text](./gifs/new_model_types.gif)
+
+# 2nd Midnight Update 23th March 2021 - Depth Buffer
+
+I started learning depth buffers and rendered the previous scene with linearizing
+z values of frag coordinates which is recorded by opengl itself
+
+
+![alt text](./gifs/depth_buffer.gif)

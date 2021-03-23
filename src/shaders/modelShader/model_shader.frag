@@ -7,6 +7,18 @@ in vec2 TexCoord;
 in vec3 TangentVertices;
 in vec3 Bitangents;
 
+
+float near = 0.1;
+float far  = 100.0;
+
+// Linearize Depth values
+float LinearizeDepth(float depth)
+{
+    float z = depth * 2.0 - 1.0;
+    return (2.0 * near * far) / (far + near - z * (far - near));
+}
+
+
 // -------------------- DIRECTIONAL LIGHT DEFINITIONS ----------------------------- //
 struct DirectionalLight {
     vec3 direction;
@@ -107,10 +119,13 @@ void main()
     // calculate colors from spot light
     result += CalcSpotLight(spotLight, norm, FragPos, viewDir, diffColor, specColor);
 
-    FragColor = vec4(result, 1.0);
+    //FragColor = vec4(result, 1.0);
+
+    // Depth testing 
+    float depth = LinearizeDepth(gl_FragCoord.z) / far;
+
+    FragColor = vec4(vec3(depth), 1.0);
 }
-
-
 
 // Directional light calculation implementation
 vec3 CalcDirectionalLight(DirectionalLight light, vec3 normal, vec3 viewDir, vec3 diffColor, vec3 specColor)
