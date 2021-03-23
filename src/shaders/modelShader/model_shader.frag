@@ -62,8 +62,8 @@ vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir, vec
 // ------------------------------------------------------------------------------------- //
 
 // ------------------------------ UTILITY FUNCTIONS ------------------------------------ //
-vec3 getDiffColor();
-vec3 getSpecColor();
+vec4 getDiffColor();
+vec4 getSpecColor();
 // -------------------------------------------------------------------------------------- //
 
 
@@ -86,8 +86,14 @@ void main()
     // properties
     vec3 norm      = normalize(Normal);
     vec3 viewDir   = normalize(viewPos - FragPos);
-    vec3 diffColor = getDiffColor();
-    vec3 specColor = getSpecColor();
+    vec4 test = getDiffColor();
+    if(test.a < 0.5)
+    {
+        discard;
+    }
+    vec3 diffColor = test.rgb;
+    
+    vec3 specColor = getSpecColor().rgb;
 
     // calculate colors from directional light
     vec3 result = CalcDirectionalLight(directionalLight, norm, viewDir, diffColor, specColor);
@@ -187,13 +193,13 @@ vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir, vec
 
 
 // ----------------------------------- UTILITY FUNCTIONS IMPLEMENTATIONS -------------------------------- //
-vec3 getDiffColor()
+vec4 getDiffColor()
 {
-    return vec3(texture(material.texture_diffuse1, TexCoord)); 
+    return vec4(texture(material.texture_diffuse1, TexCoord)); 
 }
 
-vec3 getSpecColor()
+vec4 getSpecColor()
 {
-    return vec3(texture(material.texture_specular1, TexCoord));
+    return vec4(texture(material.texture_specular1, TexCoord));
 }
 // ------------------------------------------------------------------------------------------------------- //

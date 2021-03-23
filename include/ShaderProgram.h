@@ -112,7 +112,7 @@ public:
 
     ~ShaderProgram()
     {
-        glDeleteProgram(id);
+        //glDeleteProgram(id);
     }
 
     void use()

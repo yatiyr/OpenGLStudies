@@ -144,7 +144,7 @@ int main() {
 
     // Initialize shader program from sources
     ShaderProgram program("shaders/modelShader/model_shader.vert","shaders/modelShader/model_shader.frag");
-    ShaderProgram *lightProgram = new ShaderProgram("shaders/lightShader/shader_light.vert", "shaders/lightShader/shader_light.frag");
+    ShaderProgram lightProgram("shaders/lightShader/shader_light.vert", "shaders/lightShader/shader_light.frag");
 
 
 
@@ -183,8 +183,17 @@ int main() {
     // flip loaded textures vertically
     setVerticalFlip(true);
     std::string pathBackpack = ROOT_DIR + std::string("assets/models/backpack/backpack.obj");
+    std::string pathSponza = ROOT_DIR + std::string("assets/models/sponza/Sponza.gltf");
+    std::string pathBristleback = ROOT_DIR + std::string("assets/models/bristleback/scene.gltf");
+    std::string pathDavyJones = ROOT_DIR + std::string("assets/models/davyjones/scene.gltf");
 
     Model m(pathBackpack.c_str());
+
+    Model sponza(pathSponza.c_str());
+
+    Model bristleback(pathBristleback.c_str());
+
+    Model davyJones(pathDavyJones.c_str());
 
 
 
@@ -299,10 +308,28 @@ int main() {
         
         m.Draw(program);
 
+        model = glm::translate(model, glm::vec3(0.0, -4.0f, 0.0));
+        model = glm::scale(model, glm::vec3(0.02f, 0.02f, 0.02f));
+        program.set4Matrix("model", model);
+
+        sponza.Draw(program);
+
+        model = glm::translate(model, glm::vec3(200.0, -4.0f, -50.0f));
+        model = glm::scale(model, glm::vec3(1.f, 1.f, 1.f));
+        program.set4Matrix("model", model);
+
+        bristleback.Draw(program);
+
+        model = glm::translate(model, glm::vec3(-500.0, 100.f, 4.0));
+        model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));
+        program.set4Matrix("model", model);                
+
+        davyJones.Draw(program);
+
         glBindVertexArray(lightVAO);
-        lightProgram->use();
-        lightProgram->set4Matrix("projection", projection);
-        lightProgram->set4Matrix("view", view);
+        lightProgram.use();
+        lightProgram.set4Matrix("projection", projection);
+        lightProgram.set4Matrix("view", view);
 
         for(int i=0; i<4; i++)
         {
@@ -310,8 +337,8 @@ int main() {
             modelLight = glm::translate(modelLight, pointLightPositions[i]);
             modelLight = glm::scale(modelLight, glm::vec3(0.1f));
 
-            lightProgram->set4Matrix("model", modelLight);
-            lightProgram->setVec3("uColor", pointLightColors[i]);
+            lightProgram.set4Matrix("model", modelLight);
+            lightProgram.setVec3("uColor", pointLightColors[i]);
             glDrawArrays(GL_TRIANGLES, 0, 36);            
         }
                 
@@ -354,7 +381,8 @@ int main() {
 
     glDeleteVertexArrays(1, &lightVAO);
     glDeleteBuffers(1, &VBO);
-    delete lightProgram;
+    glDeleteProgram(program.id);
+    glDeleteProgram(lightProgram.id);
     // To exit gracefully, we clean all of GLFW's
     // resources that were allocated.
     glfwTerminate();

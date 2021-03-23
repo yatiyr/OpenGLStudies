@@ -17,9 +17,11 @@ class Model
 {
 public:
     std::vector<Texture> textures_loaded;
+    std::string path;
 
     Model(const char *path)
     {
+        this->path = path;
         loadModel(path);
 
     }
@@ -86,11 +88,15 @@ private:
             vector.z = mesh->mVertices[i].z;
             vertex.Position = vector;
 
+            
             // process normal
-            vector.x = mesh->mNormals[i].x;
-            vector.y = mesh->mNormals[i].y;
-            vector.z = mesh->mNormals[i].z;
-            vertex.Normal = vector;
+            if(mesh->mNormals != nullptr)
+            {
+                vector.x = mesh->mNormals[i].x;
+                vector.y = mesh->mNormals[i].y;
+                vector.z = mesh->mNormals[i].z;
+                vertex.Normal = vector;
+            }
 
             if(mesh->mTextureCoords[0])
             {

@@ -41,3 +41,14 @@ Now, I guess I need to dive in some advanced stuff in OpenGL. At least tutorial 
 
 ![alt text](./gifs/model.gif)
 
+
+# Midnight Update 23th March 2021 - New Model Types
+
+Before diving into advanced stuff, I saw that I have to learn how to add new models instead of the modified one in the tutorial. New scene contains;
+
+  *  davy jones    => Batuhan13 (https://sketchfab.com/Batuhan13)
+  *  backpack      => Berk Gedik (https://sketchfab.com/berkgedik)
+  *  bristleback   => Nikolay_Tsys (https://sketchfab.com/Tolst)
+  *  sponza scene  => kevin.kayu (https://sketchfab.com/kevin.kayu)
+
+![alt text](./gifs/new_model_types.gif)
