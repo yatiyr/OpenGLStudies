@@ -37,9 +37,7 @@ message(STATUS "Found ASSIMP in ${ASSIMP_INCLUDE_DIR}")
 
 # Define the include DIRs
 include_directories(
-	"${CMAKE_SOURCE_DIR}/src"
-	"${CMAKE_SOURCE_DIR}/include"
-     "${CMAKE_SOURCE_DIR}/thirdparty/include"
+	"${CMAKE_SOURCE_DIR}/src" "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/thirdparty/include"
 )
 
 # STB_IMAGE
