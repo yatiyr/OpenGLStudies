@@ -20,9 +20,7 @@ void mouse_callback(GLFWwindow* window, double xPos, double yPos)
         activeCamera->lastX = xPos;
         activeCamera->lastY = yPos;
         activeCamera->firstMouse = false;
-    }
-
-    std::cout << activeCamera->lastX << " " << activeCamera->lastY << std::endl;    
+    } 
 
     float xOffset = xPos - activeCamera->lastX;
     // It is reversed because y coordinates go

@@ -57,6 +57,94 @@ void Renderer::LoadShaders()
     _shaderPrograms.push_back(std::move(lightProgram));
 }
 
+void Renderer::LoadModels()
+{
+    std::string backpackPath = ROOT_DIR + std::string("assets/models/backpack/backpack.obj");
+    Model backpackModel(backpackPath.c_str());
+
+    _models.push_back(std::move(backpackModel));
+}
+
+void Renderer::WriteLightsToShader(ShaderProgram& shader)
+{
+    // give light properties to shader
+    glm::vec3 lightColor;
+    lightColor.x = 1.0f;
+    lightColor.y = 1.0f;
+    lightColor.z = 1.0f;
+
+    glm::vec3 diffuseColor = lightColor * glm::vec3(0.2f);
+    glm::vec3 ambientColor = diffuseColor * glm::vec3(0.1f);    
+
+    // Directional light
+    shader.setVec3("directionalLight.direction", -0.2f, -1.0f, -0.3f);
+    shader.setVec3("directionalLight.ambient", ambientColor);
+    shader.setVec3("directionalLight.diffuse", diffuseColor);
+    shader.setVec3("directionalLight.specular", 1.0f, 1.0f, 1.0f);
+
+    for(int i=0; i<4; i++)
+    {
+        glm::vec3 diffuseColor = pointLightColors[i] * glm::vec3(0.7);
+        glm::vec3 ambientColor = pointLightColors[i] * glm::vec3(0.5f);
+
+        shader.setVec3("pointLights[" + std::to_string(i) + "].position", pointLightPositions[i]);
+        shader.setVec3("pointLights[" + std::to_string(i) + "].ambient", ambientColor);
+        shader.setVec3("pointLights[" + std::to_string(i) + "].diffuse", diffuseColor);
+        shader.setVec3("pointLights[" + std::to_string(i) + "].specular", 1.0f, 1.0f, 1.0f);
+
+        shader.setFloat("pointLights[" + std::to_string(i) + "].constant", 1.0f);
+        shader.setFloat("pointLights[" + std::to_string(i) + "].linear", 0.2f);
+        shader.setFloat("pointLights[" + std::to_string(i) + "].quadratic", 0.302f);              
+    }
+
+    // Spot Light
+    shader.setVec3("spotLight.position", activeCamera->Position);
+    shader.setVec3("spotLight.direction", activeCamera->Front);
+    shader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+    shader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(17.5f)));
+
+    shader.setVec3("spotLight.ambient", ambientColor);
+    shader.setVec3("spotLight.diffuse", diffuseColor);
+    shader.setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
+
+    shader.setFloat("spotLight.constant", 1.0f);
+    shader.setFloat("spotLight.linear", 0.03f);
+    shader.setFloat("spotLight.quadratic", 0.012f);
+}
+
+void Renderer::DrawModels(ShaderProgram& shader)
+{
+
+    // TODO: Turn this into a loop later
+    shader.use();    
+
+    WriteLightsToShader(shader);
+
+    // Send view position to shader program
+    shader.setVec3("viewPos", activeCamera->Position);
+
+    // Pass projection matrix to shader -> changes every frame because of camera
+    glm::mat4 projection = glm::perspective(glm::radians(activeCamera->Zoom), (float) SRC_WIDTH / (float) SRC_HEIGHT, 0.1f, 100.0f);
+    shader.set4Matrix("projection", projection);
+
+    // camera/view transformation
+    glm::mat4 view = activeCamera->GetViewMatrix();
+    shader.set4Matrix("view", view);
+
+    glm::mat4 model(1.0f);
+    model = glm::translate(model, glm::vec3(-1.0f, 2.0f, -3.0f));
+    model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
+
+    glm::mat3 normalMatrix = glm::transpose(glm::inverse(model));
+
+    shader.set4Matrix("model", model);
+    shader.set3Matrix("normalMatrix", normalMatrix);
+
+
+    _models[0].Draw(shader);
+
+}
+
 Renderer::Renderer()
 {
 
@@ -139,6 +227,10 @@ void Renderer::Run()
 
     // flip loaded textures vertically
     setVerticalFlip(true);
+
+
+    LoadModels();
+
     
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
@@ -179,53 +271,6 @@ void Renderer::Run()
         lightPosition.z = cos(glfwGetTime() * 1) * 3.0f;
         lightPosition.y = 0.0f;
 
-        // give light properties to shader
-        glm::vec3 lightColor;
-        lightColor.x = 1.0f;
-        lightColor.y = 1.0f;
-        lightColor.z = 1.0f;
-
-        glm::vec3 diffuseColor = lightColor * glm::vec3(0.2f);
-        glm::vec3 ambientColor = diffuseColor * glm::vec3(0.1f);
-
-        // Directional light
-        _shaderPrograms[0].setVec3("directionalLight.direction", -0.2f, -1.0f, -0.3f);
-        _shaderPrograms[0].setVec3("directionalLight.ambient", ambientColor);
-        _shaderPrograms[0].setVec3("directionalLight.diffuse", diffuseColor);
-        _shaderPrograms[0].setVec3("directionalLight.specular", 1.0f, 1.0f, 1.0f);
-
-        for(int i=0; i<4; i++)
-        {
-            glm::vec3 diffuseColor = pointLightColors[i] * glm::vec3(0.7);
-            glm::vec3 ambientColor = pointLightColors[i] * glm::vec3(0.5f);
-
-            _shaderPrograms[0].setVec3("pointLights[" + std::to_string(i) + "].position", pointLightPositions[i]);
-            _shaderPrograms[0].setVec3("pointLights[" + std::to_string(i) + "].ambient", ambientColor);
-            _shaderPrograms[0].setVec3("pointLights[" + std::to_string(i) + "].diffuse", diffuseColor);
-            _shaderPrograms[0].setVec3("pointLights[" + std::to_string(i) + "].specular", 1.0f, 1.0f, 1.0f);
-
-            _shaderPrograms[0].setFloat("pointLights[" + std::to_string(i) + "].constant", 1.0f);
-            _shaderPrograms[0].setFloat("pointLights[" + std::to_string(i) + "].linear", 0.2f);
-            _shaderPrograms[0].setFloat("pointLights[" + std::to_string(i) + "].quadratic", 0.302f);              
-        }
-
-        // Spot Light
-        _shaderPrograms[0].setVec3("spotLight.position", activeCamera->Position);
-        _shaderPrograms[0].setVec3("spotLight.direction", activeCamera->Front);
-        _shaderPrograms[0].setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
-        _shaderPrograms[0].setFloat("spotLight.outerCutOff", glm::cos(glm::radians(17.5f)));
-
-        _shaderPrograms[0].setVec3("spotLight.ambient", ambientColor);
-        _shaderPrograms[0].setVec3("spotLight.diffuse", diffuseColor);
-        _shaderPrograms[0].setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
-
-        _shaderPrograms[0].setFloat("spotLight.constant", 1.0f);
-        _shaderPrograms[0].setFloat("spotLight.linear", 0.03f);
-        _shaderPrograms[0].setFloat("spotLight.quadratic", 0.012f);
-
-        // Send view position to shader program
-        _shaderPrograms[0].setVec3("viewPos", activeCamera->Position);
-
         // Pass projection matrix to shader -> changes every frame because of camera
         glm::mat4 projection = glm::perspective(glm::radians(activeCamera->Zoom), (float) SRC_WIDTH / (float) SRC_HEIGHT, 0.1f, 100.0f);
         _shaderPrograms[0].set4Matrix("projection", projection);
@@ -234,15 +279,7 @@ void Renderer::Run()
         glm::mat4 view = activeCamera->GetViewMatrix();
         _shaderPrograms[0].set4Matrix("view", view);
 
-        glm::mat4 model(1.0f);
-        model = glm::translate(model, glm::vec3(-1.0f, 2.0f, -3.0f));
-        model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
-
-        glm::mat3 normalMatrix = glm::transpose(glm::inverse(model));
-
-        _shaderPrograms[0].set4Matrix("model", model);
-        _shaderPrograms[0].set3Matrix("normalMatrix", normalMatrix);
-
+        DrawModels(_shaderPrograms[0]);
 
 
         glBindVertexArray(lightVAO);

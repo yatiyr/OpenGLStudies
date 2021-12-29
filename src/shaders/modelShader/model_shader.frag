@@ -119,12 +119,12 @@ void main()
     // calculate colors from spot light
     result += CalcSpotLight(spotLight, norm, FragPos, viewDir, diffColor, specColor);
 
-    //FragColor = vec4(result, 1.0);
+    FragColor = vec4(result, 1.0);
 
     // Depth testing 
-    float depth = LinearizeDepth(gl_FragCoord.z) / far;
+    //float depth = LinearizeDepth(gl_FragCoord.z) / far;
 
-    FragColor = vec4(vec3(depth), 1.0);
+    //FragColor = vec4(vec3(depth), 1.0);
 }
 
 // Directional light calculation implementation
