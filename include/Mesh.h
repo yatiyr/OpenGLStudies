@@ -70,23 +70,23 @@ public:
             if(type == TextureType::texture_diffuse)
             {
                 number = std::to_string(nDiffuse++);
-                glUniform1i(glGetUniformLocation(shaderProgram.id, ("material.texture_diffuse" + number).c_str()), i);
+                glUniform1f(glGetUniformLocation(shaderProgram.id, ("material.texture_diffuse" + number).c_str()), i);
             }
             else if(type == TextureType::texture_specular)
             {
                 number = std::to_string(nSpecular++);
-                glUniform1i(glGetUniformLocation(shaderProgram.id, ("material.texture_specular" + number).c_str()), i);
+                glUniform1f(glGetUniformLocation(shaderProgram.id, ("material.texture_specular" + number).c_str()), i);
             }                    
 
             glBindTexture(GL_TEXTURE_2D, textures[i].id);         
         }
+        glActiveTexture(GL_TEXTURE0);   
 
         // draw mesh
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
-
-        glActiveTexture(GL_TEXTURE0);        
+     
     }
 
 private:

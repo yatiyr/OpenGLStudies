@@ -62,7 +62,11 @@ void Renderer::LoadModels()
     std::string backpackPath = ROOT_DIR + std::string("assets/models/backpack/backpack.obj");
     Model backpackModel(backpackPath.c_str());
 
+    std::string sponzaPath = ROOT_DIR + std::string("assets/models/sponza/Sponza.gltf");
+    Model sponzaModel(sponzaPath.c_str());
+
     _models.push_back(std::move(backpackModel));
+    _models.push_back(std::move(sponzaModel));
 }
 
 void Renderer::WriteLightsToShader(ShaderProgram& shader)
@@ -124,7 +128,7 @@ void Renderer::DrawModels(ShaderProgram& shader)
     shader.setVec3("viewPos", activeCamera->Position);
 
     // Pass projection matrix to shader -> changes every frame because of camera
-    glm::mat4 projection = glm::perspective(glm::radians(activeCamera->Zoom), (float) SRC_WIDTH / (float) SRC_HEIGHT, 0.1f, 100.0f);
+    glm::mat4 projection = glm::perspective(glm::radians(activeCamera->Zoom), (float) SRC_WIDTH / (float) SRC_HEIGHT, 0.1f, 10000.0f);
     shader.set4Matrix("projection", projection);
 
     // camera/view transformation
@@ -142,6 +146,12 @@ void Renderer::DrawModels(ShaderProgram& shader)
 
 
     _models[0].Draw(shader);
+
+    glm::mat4 model2(1.0f);
+    model2 = glm::translate(model2, glm::vec3(0.0f, -2.0f, 0.0f));    
+    model2 = glm::scale(model2, glm::vec3(0.1f, 0.1f, 0.1f));    
+    shader.set4Matrix("model", model2);    
+    _models[1].Draw(shader);
 
 }
 
@@ -185,6 +195,7 @@ Renderer::Renderer()
 
     // Global OpenGL state -> depth test
     glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
 
     // Initialize shader programs from sources
     LoadShaders();

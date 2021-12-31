@@ -20,24 +20,24 @@ include_directories(${CMAKE_BINARY_DIR}/src)
 
 add_executable(${PROJECT_NAME} ${HEADER_FILES} ${SOURCE_FILES})
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/")
+#set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
 
 find_package(OpenGL REQUIRED)
 
-find_package(glm REQUIRED)
-message(STATUS "GLM included at ${GLM_INCLUDE_DIR}")
+find_package(GLM REQUIRED)
 
-find_package(glfw3 REQUIRED)
-message(STATUS "Found GLFW3 in ${GLFW3_INCLUDE_DIR}")
 
-find_package(assimp REQUIRED)
-message(STATUS "Found ASSIMP in ${ASSIMP_INCLUDE_DIR}")
+find_package(GLFW3 REQUIRED)
+
+
+find_package(ASSIMP REQUIRED)
 
 
 # Define the include DIRs
 include_directories(
-	"${CMAKE_SOURCE_DIR}/src" "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/thirdparty/include"
+	"${ASSIMP_INCLUDE_DIR}" "${CMAKE_SOURCE_DIR}/src" "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/thirdparty/include"
 )
 
 # STB_IMAGE
@@ -46,7 +46,7 @@ add_library(STB_IMAGE "${CMAKE_SOURCE_DIR}/thirdparty/stb_image.cpp")
 # GLAD
 add_library(GLAD "${CMAKE_SOURCE_DIR}/thirdparty/glad.c")
 
-set(LIBS glfw3 GL X11 pthread  Xrandr Xi dl assimp STB_IMAGE GLAD)
+set(LIBS glfw3 GL X11 pthread  Xrandr Xi dl ${ASSIMP_LIBRARY} STB_IMAGE GLAD)
 
 target_link_libraries(${PROJECT_NAME} ${LIBS})
 
