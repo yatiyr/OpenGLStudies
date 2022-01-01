@@ -60,3 +60,13 @@ z values of frag coordinates which is recorded by opengl itself
 
 
 ![alt text](./gifs/depth_buffer.gif)
+
+
+# I'm back!!!!! Update 1st January 2022 - Stencil Buffer
+
+I had a lot of things to do. Meanwhile, I changed my job. Now I'm a TA at my university which means I've a lot more time to learn. I'm a bit late but back in track. I'm not giving up learning opengl. This time, I've handled stencil buffers!
+
+![alt text](./gifs/stencilBuffer.gif)
+
+
+

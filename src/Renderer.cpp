@@ -53,8 +53,12 @@ void Renderer::LoadShaders()
     ShaderProgram lightProgram("shaders/lightShader/shader_light.vert",
                                "shaders/lightShader/shader_light.frag");
 
+    ShaderProgram singleColorProgram("shaders/shaderSingleColor/shaderSingleColor.vert",
+                                    "shaders/shaderSingleColor/shaderSingleColor.frag");
+
     _shaderPrograms.push_back(std::move(program));
     _shaderPrograms.push_back(std::move(lightProgram));
+    _shaderPrograms.push_back(std::move(singleColorProgram));
 }
 
 void Renderer::LoadModels()
@@ -122,6 +126,7 @@ void Renderer::DrawModels(ShaderProgram& shader)
     // TODO: Turn this into a loop later
     shader.use();    
 
+    glStencilMask(0x00);
     WriteLightsToShader(shader);
 
     // Send view position to shader program
@@ -141,17 +146,44 @@ void Renderer::DrawModels(ShaderProgram& shader)
 
     glm::mat3 normalMatrix = glm::transpose(glm::inverse(model));
 
-    shader.set4Matrix("model", model);
-    shader.set3Matrix("normalMatrix", normalMatrix);
 
-
-    _models[0].Draw(shader);
-
+    shader.use();
     glm::mat4 model2(1.0f);
     model2 = glm::translate(model2, glm::vec3(0.0f, -2.0f, 0.0f));    
     model2 = glm::scale(model2, glm::vec3(0.1f, 0.1f, 0.1f));    
     shader.set4Matrix("model", model2);    
-    _models[1].Draw(shader);
+    _models[1].Draw(shader);    
+
+
+    shader.set4Matrix("model", model);
+    shader.set3Matrix("normalMatrix", normalMatrix);
+
+    _models[0].Draw(shader);
+
+    // First render pass, we draw model as usual with writing to stencil buffer
+    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+    glDisable(GL_DEPTH_TEST);
+    glStencilFunc(GL_ALWAYS, 1, 0XFF);
+    glStencilMask(0xFF);
+    _models[0].Draw(shader);
+
+    // Second render pass, we now draw, upscaled version of the model but we disable
+    // stencil writing
+    // We will only draw size difference part which looks like outline
+    glStencilFunc(GL_NOTEQUAL, 1, 0XFF);
+    glStencilMask(0x00);
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);    
+    _shaderPrograms[2].use();
+
+    glm::mat4 outlineModel = glm::scale(model, glm::vec3(1.0f,1.0f,1.0f));
+    _shaderPrograms[2].set4Matrix("model", outlineModel);
+    _shaderPrograms[2].set4Matrix("view", view);
+    _shaderPrograms[2].set4Matrix("projection", projection);
+    _models[0].Draw(_shaderPrograms[2]);
+    glStencilMask(0xFF);
+    glEnable(GL_DEPTH_TEST);
+    glStencilFunc(GL_ALWAYS, 0, 0xFF);    
+
 
 }
 
@@ -196,6 +228,11 @@ Renderer::Renderer()
     // Global OpenGL state -> depth test
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
+
+    // Enable stencil testing
+    glEnable(GL_STENCIL_TEST);
+    glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 
     // Initialize shader programs from sources
     LoadShaders();
@@ -269,7 +306,7 @@ void Renderer::Run()
         // This is a state-using function
         // it clears the buffer with clear
         // color we specify
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
         // activate our shader program
         _shaderPrograms[0].use();
@@ -290,9 +327,7 @@ void Renderer::Run()
         glm::mat4 view = activeCamera->GetViewMatrix();
         _shaderPrograms[0].set4Matrix("view", view);
 
-        DrawModels(_shaderPrograms[0]);
-
-
+        glStencilMask(0x00);
         glBindVertexArray(lightVAO);
         _shaderPrograms[1].use();
         _shaderPrograms[1].set4Matrix("projection", projection);
@@ -309,6 +344,8 @@ void Renderer::Run()
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
 
+
+        DrawModels(_shaderPrograms[0]);
 
         // swap the color buffer (a large 2D buffer that
         //                        contains color values
