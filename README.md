@@ -69,4 +69,11 @@ I had a lot of things to do. Meanwhile, I changed my job. Now I'm a TA at my uni
 ![alt text](./gifs/stencilBuffer.gif)
 
 
+# Update 3rd January 2022 - Blending (Transparent Windows)
 
+I spent some time refactoring my code. In order to track the lessons I follow better, I started
+storing code and data that is specific lessons separately so I can plug in any of them if I want.
+
+This time, I have learnt how to do blending.
+
+![alt text](./gifs/transparentWindows.gif)

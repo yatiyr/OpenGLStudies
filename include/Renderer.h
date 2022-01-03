@@ -61,30 +61,6 @@ private:
 
     void ProcessInput();
 
-// ------------------------ LIGHT SETTINGS --------------------- //
-
-    // TODO: MAKE LIGHTS A VECTOR TOO
-    glm::vec3 lightPosition;
-
-// --------------------------- SHADERS ------------------------- //
-
-    void LoadShaders();
-    std::vector<ShaderProgram> _shaderPrograms;
-
-// ------------------------------------------------------------- //
-
-// ---------------------------- MODELS ------------------------- //
-    void LoadModels();
-    std::vector<Model> _models;
-
-    void DrawModels(ShaderProgram& shader);
-// ------------------------------------------------------------- //
-
-
-// --------------------------- WRITE LIGHTS -------------------- //
-    void WriteLightsToShader(ShaderProgram& shader);
-// ------------------------------------------------------------- //
-
 public:
 
     Renderer();
