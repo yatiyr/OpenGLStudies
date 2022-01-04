@@ -77,3 +77,12 @@ storing code and data that is specific lessons separately so I can plug in any o
 This time, I have learnt how to do blending.
 
 ![alt text](./gifs/transparentWindows.gif)
+
+
+# Update 4th January 2022 - FaceCulling
+
+This time, I've studied face culling part in [LearnOpenGL](https://learnopengl.com/Advanced-OpenGL/Face-culling) and finished the excercise. In this exervise, I re-defined vertex data of the cube specifying each triangle in clockwise order and rendered the scene with clockwise triangles set as the front faces.
+
+It looks like how we see inside of buildings and rooms in games like sims :D
+
+![alt text](./gifs/faceCulling.gif)
