@@ -86,3 +86,17 @@ This time, I've studied face culling part in [LearnOpenGL](https://learnopengl.c
 It looks like how we see inside of buildings and rooms in games like sims :D
 
 ![alt text](./gifs/faceCulling.gif)
+
+
+
+# Update 6th January 2022 - Framebuffers and Post Processing
+
+Now I have learnt how to create framebuffers and apply post processing to them.
+
+Like applying edge detection;
+
+![alt text](./gifs/edgeDetectionKernel.gif)
+
+Or Gaussian Blur;
+
+![alt text](./gifs/blurKernel.gif)

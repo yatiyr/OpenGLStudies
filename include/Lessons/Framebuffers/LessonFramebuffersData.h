@@ -16,6 +16,11 @@ namespace LessonFramebuffersData
     unsigned int textureColorBuffer;
     unsigned int rbo;
 
+    // Mirror framebuffer
+    unsigned int mFramebuffer;
+    unsigned int mTextureColorBuffer;
+    unsigned int mRbo;
+
     unsigned int cubeVAO;
     unsigned int cubeVBO;
 
@@ -99,7 +104,7 @@ namespace LessonFramebuffersData
         -1.0f,  1.0f,  0.0f, 1.0f,
          1.0f, -1.0f,  1.0f, 0.0f,
          1.0f,  1.0f,  1.0f, 1.0f
-    };    
+    };
 
 }
 
