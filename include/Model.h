@@ -33,6 +33,14 @@ public:
         }
     }
 
+    void DrawNoTexture(ShaderProgram &shader, unsigned int cubemap)
+    {
+        for(unsigned int i=0; i<meshes.size(); i++)
+        {
+            meshes[i].DrawNoTexture(shader, cubemap);
+        }
+    }
+
 private:
     std::vector<Mesh> meshes;
     std::string directory;

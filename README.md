@@ -100,3 +100,10 @@ Like applying edge detection;
 Or Gaussian Blur;
 
 ![alt text](./gifs/blurKernel.gif)
+
+
+# Update 8th January 2022 - Skyboxes and Environment Mapping
+
+I have finished skyboxes and environment mapping parts and understood how they are done.
+
+![alt text](./gifs/environmentMappingSkybox.gif)

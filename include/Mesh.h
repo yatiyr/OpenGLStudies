@@ -89,6 +89,15 @@ public:
      
     }
 
+    void DrawNoTexture(ShaderProgram &shaderProgram, unsigned int cubemap)
+    {
+        glBindVertexArray(VAO);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap);        
+        glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+        glBindVertexArray(0);
+    }
+
 private:
     unsigned int VBO, EBO;
 

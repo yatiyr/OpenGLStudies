@@ -3,6 +3,7 @@
 
 #include <Lessons/LessonEssentials.h>
 #include <Lessons/Cubemaps/LessonCubemapsData.h>
+#include <Model.h>
 
 class LessonCubemaps
 {
@@ -22,17 +23,20 @@ public:
         LessonCubemapsData::skyboxShader = new ShaderProgram("shaders/cubemap/skybox.vert",
                                                              "shaders/cubemap/skybox.frag");
 
+        std::string backpackPath = ROOT_DIR + std::string("assets/models/backpack/backpack.obj");
+        LessonCubemapsData::backpackModel = new Model(backpackPath.c_str());
+
 
         // cube VAO
         glGenVertexArrays(1, &LessonCubemapsData::cubeVAO);
         glGenBuffers(1, &LessonCubemapsData::cubeVBO);
         glBindVertexArray(LessonCubemapsData::cubeVAO);
         glBindBuffer(GL_ARRAY_BUFFER, LessonCubemapsData::cubeVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(LessonCubemapsData::verticesCube), &LessonCubemapsData::verticesCube, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(LessonCubemapsData::cubeVertNormal), &LessonCubemapsData::cubeVertNormal, GL_STATIC_DRAW);
         glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
         glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
 
         // skybox VAO
         glGenVertexArrays(1, &LessonCubemapsData::skyboxVAO);
@@ -45,7 +49,7 @@ public:
 
         std::string cubeTexturePath = std::string(ROOT_DIR) + "assets/textures/blend/marble.png";
 
-        LessonCubemapsData::cubeTexture = LoadTexture(cubeTexturePath.c_str());
+        //LessonCubemapsData::cubeTexture = LoadTexture(cubeTexturePath.c_str());
 
         std::vector<std::string> faces
         {
@@ -61,7 +65,7 @@ public:
 
         // shader configuration
         LessonCubemapsData::shader->use();
-        LessonCubemapsData::shader->setInt("texture1", 0);
+        LessonCubemapsData::shader->setInt("skybox", 0);
 
         LessonCubemapsData::skyboxShader->use();
         LessonCubemapsData::skyboxShader->setInt("skybox", 0);
@@ -82,13 +86,20 @@ public:
         LessonCubemapsData::shader->set4Matrix("model", model);
         LessonCubemapsData::shader->set4Matrix("view", view);
         LessonCubemapsData::shader->set4Matrix("projection", projection);
+        LessonCubemapsData::shader->setVec3("cameraPos", cam->Position);
 
         // cubes
         glBindVertexArray(LessonCubemapsData::cubeVAO);
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, LessonCubemapsData::cubeTexture);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, LessonCubemapsData::cubemapTexture);
         glDrawArrays(GL_TRIANGLES, 0, 36);
         glBindVertexArray(0);
+
+
+        // backpack
+        model = glm::translate(model, glm::vec3(5.0f, 5.0f, 5.0f));
+        LessonCubemapsData::shader->set4Matrix("model", model);
+        LessonCubemapsData::backpackModel->DrawNoTexture(*LessonCubemapsData::shader, LessonCubemapsData::cubemapTexture);
 
         // draw skybox as last
         glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when values are equal to depth buffer's content
