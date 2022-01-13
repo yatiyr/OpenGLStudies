@@ -1,6 +1,6 @@
 #include <Renderer.h>
 
-#include <Lessons/Ubo/LessonUbo.h>
+#include <Lessons/GeometryShader/GeometryShader.h>
 
 void Renderer::RegisterCallbacks()
 {
@@ -86,7 +86,7 @@ Renderer::Renderer()
     }
 
     // Put here initialConf() function of specific lesson class
-    LessonUbo::initialConf();
+    GeometryShader::initialConf();
 }
 
 void Renderer::Run() 
@@ -110,7 +110,7 @@ void Renderer::Run()
         ProcessInput();
 
         // Put here draw() function of lesson class
-        LessonUbo::draw(activeCamera);
+        GeometryShader::draw(activeCamera, currentFrame);
 
         // swap the color buffer (a large 2D buffer that
         //                        contains color values
@@ -152,7 +152,7 @@ void Renderer::Run()
     // glDeleteProgram(_shaderPrograms[1].id);
 
     // Put here clean function of lesson class
-    LessonUbo::clean();
+    GeometryShader::clean();
 
     // To exit gracefully, we clean all of GLFW's
     // resources that were allocated

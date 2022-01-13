@@ -107,3 +107,11 @@ Or Gaussian Blur;
 I have finished skyboxes and environment mapping parts and understood how they are done.
 
 ![alt text](./gifs/environmentMappingSkybox.gif)
+
+# Update 13th January 2022 - Geometry Shader and Normal Visualizing
+
+I was trying to understand uniform buffer objects last couple of days. After finishing them,
+I started learning geometry shaders. I now understood how they work and how to visualize 
+normals of a surface using geometry shaders.
+
+![alt text](./gifs/geometryShader.gif)
