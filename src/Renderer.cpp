@@ -1,6 +1,6 @@
 #include <Renderer.h>
 
-#include <Lessons/GeometryShader/GeometryShader.h>
+#include <Lessons/Instancing/Instancing.h>
 
 void Renderer::RegisterCallbacks()
 {
@@ -66,7 +66,7 @@ Renderer::Renderer()
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    _window = glfwCreateWindow(800, 600, "OpenGLStudies", nullptr, nullptr);
+    _window = glfwCreateWindow(1440, 700, "OpenGLStudies", nullptr, nullptr);
     if(_window == nullptr)
     {
         glfwTerminate();
@@ -86,7 +86,7 @@ Renderer::Renderer()
     }
 
     // Put here initialConf() function of specific lesson class
-    GeometryShader::initialConf();
+    Instancing::initialConf();
 }
 
 void Renderer::Run() 
@@ -110,7 +110,7 @@ void Renderer::Run()
         ProcessInput();
 
         // Put here draw() function of lesson class
-        GeometryShader::draw(activeCamera, currentFrame);
+        Instancing::draw(activeCamera);
 
         // swap the color buffer (a large 2D buffer that
         //                        contains color values
@@ -152,7 +152,7 @@ void Renderer::Run()
     // glDeleteProgram(_shaderPrograms[1].id);
 
     // Put here clean function of lesson class
-    GeometryShader::clean();
+    Instancing::clean();
 
     // To exit gracefully, we clean all of GLFW's
     // resources that were allocated

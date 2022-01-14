@@ -41,8 +41,10 @@ public:
         }
     }
 
-private:
     std::vector<Mesh> meshes;
+
+private:
+
     std::string directory;
     
 
@@ -145,7 +147,7 @@ private:
 
             std::vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, TextureType::texture_specular);
             textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
-            
+          
         }
 
 

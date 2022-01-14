@@ -115,3 +115,10 @@ I started learning geometry shaders. I now understood how they work and how to v
 normals of a surface using geometry shaders.
 
 ![alt text](./gifs/geometryShader.gif)
+
+
+# Update 14th January 2022 - Instancing
+
+I have learnt instancing today. I've understood that it is used for minimizing draw calls because giving commands to GPU is costly. Using this technique, we can render over ``100000`` asteroids with reasonable framerate.
+
+![alt text](./gifs/instancing.gif)
