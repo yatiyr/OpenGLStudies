@@ -122,3 +122,11 @@ normals of a surface using geometry shaders.
 I have learnt instancing today. I've understood that it is used for minimizing draw calls because giving commands to GPU is costly. Using this technique, we can render over ``100000`` asteroids with reasonable framerate.
 
 ![alt text](./gifs/instancing.gif)
+
+
+
+# Update 23th January 2022 - Phong and Blinn-Phong Shading
+
+I used to now a couple of things about Phong and Blinn-Phong Shading from my intro to graphics and advanced ray tracing courses. But this time, I have learnt how to implement them with shaders and opengl. I have understood their differences better.
+
+![alt text](./gifs/phong_and_blinn_phong.gif)

@@ -1,6 +1,6 @@
 #include <Renderer.h>
 
-#include <Lessons/AntiAliasing/AntiAliasing.h>
+#include <Lessons/AdvancedLighting/AdvancedLighting.h>
 
 void Renderer::RegisterCallbacks()
 {
@@ -45,6 +45,8 @@ void Renderer::ProcessInput()
     {
         activeCamera->ProcessKeyboard(RIGHT, deltaTime);
     }
+
+    AdvancedLighting::processInput(_window);
 }
 
 Renderer::Renderer()
@@ -86,7 +88,7 @@ Renderer::Renderer()
     }
 
     // Put here initialConf() function of specific lesson class
-    AntiAliasing::initialConf();
+    AdvancedLighting::initialConf();
 }
 
 void Renderer::Run() 
@@ -110,7 +112,7 @@ void Renderer::Run()
         ProcessInput();
 
         // Put here draw() function of lesson class
-        AntiAliasing::draw(activeCamera);
+        AdvancedLighting::draw(activeCamera);
 
         // swap the color buffer (a large 2D buffer that
         //                        contains color values
@@ -152,7 +154,7 @@ void Renderer::Run()
     // glDeleteProgram(_shaderPrograms[1].id);
 
     // Put here clean function of lesson class
-    AntiAliasing::clean();
+    AdvancedLighting::clean();
 
     // To exit gracefully, we clean all of GLFW's
     // resources that were allocated
