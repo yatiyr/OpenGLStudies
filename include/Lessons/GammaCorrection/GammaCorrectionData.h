@@ -1,5 +1,5 @@
-#ifndef __ADVANCED_LIGHTING_DATA_H__
-#define __ADVANCED_LIGHTING_DATA_H__
+#ifndef __GAMMA_CORRECTION_DATA_H__
+#define __GAMMA_CORRECTION_DATA_H__
 
 #include <vector>
 #include <glm/glm.hpp>
@@ -8,21 +8,21 @@
 #include <ShaderProgram.h>
 #include <Model.h>
 
-namespace AdvancedLightingData
+namespace GammaCorrectionData
 {
     unsigned int SCR_WIDTH = 1440;
     unsigned int SCR_HEIGHT = 700;
 
     unsigned int planeVAO;
-
     unsigned int floorTexture;
+    unsigned int floorTextureGammaCorrected;
 
     ShaderProgram *shader;
 
     glm::vec3 lightPos;
 
-    bool blinn = false;
-    bool blinnKeyPressed = false;
+    bool gammaEnabled = false;
+    bool gammaKeyPressed = false;
 
     float planeVertices[] =
     {
@@ -33,10 +33,26 @@ namespace AdvancedLightingData
 
          10.0f, -0.5f,  10.0f,  0.0f, 1.0f, 0.0f,  10.0f,  0.0f,
         -10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,   0.0f, 10.0f,
-         10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,  10.0f, 10.0f        
+         10.0f, -0.5f, -10.0f,  0.0f, 1.0f, 0.0f,  10.0f, 10.0f
     };
-}
 
+    glm::vec3 lightPositions[] = 
+    {
+        glm::vec3(-3.0f, 0.0f, 0.0f),
+        glm::vec3(-1.0f, 0.0f, 0.0f),
+        glm::vec3 (1.0f, 0.0f, 0.0f),
+        glm::vec3 (3.0f, 0.0f, 0.0f)
+    };
+
+    glm::vec3 lightColors[] =
+    {
+        glm::vec3(0.25),
+        glm::vec3(0.50),
+        glm::vec3(0.75),
+        glm::vec3(1.00)
+    };
+
+}
 
 
 #endif

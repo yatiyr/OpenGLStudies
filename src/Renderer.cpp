@@ -1,6 +1,6 @@
 #include <Renderer.h>
 
-#include <Lessons/AdvancedLighting/AdvancedLighting.h>
+#include <Lessons/GammaCorrection/GammaCorrection.h>
 
 void Renderer::RegisterCallbacks()
 {
@@ -46,7 +46,7 @@ void Renderer::ProcessInput()
         activeCamera->ProcessKeyboard(RIGHT, deltaTime);
     }
 
-    AdvancedLighting::processInput(_window);
+    GammaCorrection::processInput(_window);
 }
 
 Renderer::Renderer()
@@ -88,7 +88,7 @@ Renderer::Renderer()
     }
 
     // Put here initialConf() function of specific lesson class
-    AdvancedLighting::initialConf();
+    GammaCorrection::initialConf();
 }
 
 void Renderer::Run() 
@@ -112,7 +112,7 @@ void Renderer::Run()
         ProcessInput();
 
         // Put here draw() function of lesson class
-        AdvancedLighting::draw(activeCamera);
+        GammaCorrection::draw(activeCamera);
 
         // swap the color buffer (a large 2D buffer that
         //                        contains color values
@@ -154,7 +154,7 @@ void Renderer::Run()
     // glDeleteProgram(_shaderPrograms[1].id);
 
     // Put here clean function of lesson class
-    AdvancedLighting::clean();
+    GammaCorrection::clean();
 
     // To exit gracefully, we clean all of GLFW's
     // resources that were allocated
