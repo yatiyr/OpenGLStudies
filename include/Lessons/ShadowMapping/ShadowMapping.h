@@ -11,7 +11,9 @@ public:
     {
         setVerticalFlip(false);        
         glEnable(GL_DEPTH_TEST);
-        
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
+
         ShadowMappingData::shader = new ShaderProgram("shaders/shadowMapping/shadowmapping.vert",
                                                       "shaders/shadowMapping/shadowmapping.frag");
 
@@ -154,11 +156,14 @@ public:
 
     static void renderScene(ShaderProgram *shader, float currentFrame)
     {
+
+        glFrontFace(GL_CW);
         // floor
         glm::mat4 model = glm::mat4(1.0f);
         shader->set4Matrix("model", model);
         glBindVertexArray(ShadowMappingData::planeVAO);
         glDrawArrays(GL_TRIANGLES, 0, 6);
+        glFrontFace(GL_CCW);
 
         // cubes
         model = glm::mat4(1.0f);

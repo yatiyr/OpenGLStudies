@@ -34,13 +34,39 @@ vec2 poissonDisk[16] = vec2[](
    vec2( 0.14383161, -0.14100790 ) 
 );
 
+
+float calculateVisibility(vec4 fragPosLightSpace, vec3 lightDir, vec3 normal)
+{
+    float visibility = 1.0;
+
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+
+
+    // transform to [0, 1] range
+    projCoords = projCoords * 0.5 + 0.5;
+
+    float cosTheta = clamp(dot(normal, lightDir), 0.0, 1.0);
+    //float bias = 0.005*tan(acos(cosTheta));
+    float bias = 0; // clamp(bias, 0, 0.01);
+
+    if(projCoords.z > 1.0)
+        return 1.0;
+
+
+    for(int i=0; i<16; i++)
+    {
+        if(texture(shadowMap, projCoords.xy + poissonDisk[i]/700.0).r < projCoords.z - bias)
+        {
+            visibility -= 0.05;
+        }        
+    }
+
+    return visibility;
+}
 float ShadowCalculation(vec4 fragPosLightSpace, vec3 lightDir, vec3 normal)
 {
     // perform perspective divide
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
-
-    if(projCoords.z > 1.0)
-        return 0.0;
 
     // transform to [0, 1] range
     projCoords = projCoords * 0.5 + 0.5;
@@ -51,7 +77,7 @@ float ShadowCalculation(vec4 fragPosLightSpace, vec3 lightDir, vec3 normal)
 
     float cosTheta = clamp(dot(normal, lightDir), 0.0, 1.0);
     // check whether current frag pos is in shadow
-    float bias = max(0.005 * (1.0 - dot(normal, lightDir)), 0.004);  
+    //float bias = max(0.005 * (1.0 - dot(normal, lightDir)), 0.0005);  
 
     // check whether current frag pos is in shadow
     // float shadow = current depth - bias > closestDepth ? 1.0 : 0.0;
@@ -63,10 +89,13 @@ float ShadowCalculation(vec4 fragPosLightSpace, vec3 lightDir, vec3 normal)
         for(int y = -1; y <= 1; ++y)
         {
             float pcfDepth = texture(shadowMap, projCoords.xy + vec2(x,y) * texelSize).r;
-            shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
+            shadow += currentDepth > pcfDepth ? 1.0 : 0.0;
         }
     }
     shadow /= 9.0;
+
+    if(projCoords.z > 1.0)
+        return 0.0;
 
     return shadow;
 }
@@ -90,6 +119,8 @@ void main()
     spec = pow(max(dot(normal, halfwayDir), 0.0), 64.0);
     vec3 specular = spec * lightColor;
     // calculate shadow
+    float visibility = calculateVisibility(fs_in.FragPosLightSpace, lightDir, normal);
+
     float shadow = ShadowCalculation(fs_in.FragPosLightSpace, lightDir, normal);
     vec3 lighting = (ambient + (1 - shadow) * (diffuse + specular)) * color;
 
