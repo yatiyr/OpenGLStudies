@@ -10,8 +10,8 @@
 
 namespace ShadowMappingData
 {
-    unsigned int SCR_WIDTH = 1920;
-    unsigned int SCR_HEIGHT = 1080;
+    unsigned int SCR_WIDTH = 800;
+    unsigned int SCR_HEIGHT = 600;
 
     unsigned int planeVAO;
 
@@ -36,8 +36,8 @@ namespace ShadowMappingData
     };
 
 
-    unsigned int SHADOW_WIDTH = 4096;
-    unsigned int SHADOW_HEIGHT = 4096;
+    unsigned int SHADOW_WIDTH = 1024;
+    unsigned int SHADOW_HEIGHT = 1024;
     unsigned int depthMapFBO;
     unsigned int depthMap;
 

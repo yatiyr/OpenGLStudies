@@ -122,7 +122,7 @@ void main()
     float visibility = calculateVisibility(fs_in.FragPosLightSpace, lightDir, normal);
 
     float shadow = ShadowCalculation(fs_in.FragPosLightSpace, lightDir, normal);
-    vec3 lighting = (ambient + (1 - shadow) * (diffuse + specular)) * color;
+    vec3 lighting = (ambient + (visibility) * (diffuse + specular)) * color;
 
     FragColor = vec4(lighting, 1.0);
 
