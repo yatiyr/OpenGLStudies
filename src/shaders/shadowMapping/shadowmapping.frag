@@ -46,8 +46,8 @@ float calculateVisibility(vec4 fragPosLightSpace, vec3 lightDir, vec3 normal)
     projCoords = projCoords * 0.5 + 0.5;
 
     float cosTheta = clamp(dot(normal, lightDir), 0.0, 1.0);
-    //float bias = 0.005*tan(acos(cosTheta));
-    float bias = 0; // clamp(bias, 0, 0.01);
+    float bias = 0.0005*tan(acos(cosTheta));
+    clamp(bias, 0, 0.01);
 
     if(projCoords.z > 1.0)
         return 1.0;
@@ -55,7 +55,7 @@ float calculateVisibility(vec4 fragPosLightSpace, vec3 lightDir, vec3 normal)
 
     for(int i=0; i<16; i++)
     {
-        if(texture(shadowMap, projCoords.xy + poissonDisk[i]/700.0).r < projCoords.z - bias)
+        if(texture(shadowMap, projCoords.xy + poissonDisk[i]/1400.0).r < projCoords.z - bias)
         {
             visibility -= 0.05;
         }        
