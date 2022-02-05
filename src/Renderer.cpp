@@ -1,6 +1,6 @@
 #include <Renderer.h>
 
-#include <Lessons/OmnidirectionalSM/OmnidirectionalSM.h>
+#include <Lessons/NormalMapping/NormalMapping.h>
 
 void Renderer::RegisterCallbacks()
 {
@@ -46,7 +46,7 @@ void Renderer::ProcessInput()
         activeCamera->ProcessKeyboard(RIGHT, deltaTime);
     }
 
-    OmnidirectionalSM::processInput(_window);
+    //OmnidirectionalSM::processInput(_window);
 }
 
 Renderer::Renderer()
@@ -88,7 +88,7 @@ Renderer::Renderer()
     }
 
     // Put here initialConf() function of specific lesson class
-    OmnidirectionalSM::initialConf();
+    NormalMapping::initialConf();
 }
 
 void Renderer::Run() 
@@ -112,7 +112,7 @@ void Renderer::Run()
         ProcessInput();
 
         // Put here draw() function of lesson class
-        OmnidirectionalSM::draw(activeCamera, currentFrame);
+        NormalMapping::draw(activeCamera, currentFrame);
 
         // swap the color buffer (a large 2D buffer that
         //                        contains color values
@@ -154,7 +154,7 @@ void Renderer::Run()
     // glDeleteProgram(_shaderPrograms[1].id);
 
     // Put here clean function of lesson class
-    OmnidirectionalSM::clean();
+    NormalMapping::clean();
 
     // To exit gracefully, we clean all of GLFW's
     // resources that were allocated
