@@ -46,7 +46,7 @@ public:
         NormalMappingData::shader->set4Matrix("view", view);
         // render normal-mapped quad
         glm::mat4 model = glm::mat4(1.0f);
-        model = glm::rotate(model, glm::radians(currentFrame * -2.0f), glm::normalize(glm::vec3(1.0, 0.0, 1.0)));
+        model = glm::rotate(model, glm::radians(currentFrame * -0.5f), glm::normalize(glm::vec3(1.0, 0.0, 1.0)));
         NormalMappingData::shader->set4Matrix("model", model);
         NormalMappingData::shader->setVec3("viewPos", cam->Position);
         NormalMappingData::shader->setVec3("lightPos", NormalMappingData::lightPos);

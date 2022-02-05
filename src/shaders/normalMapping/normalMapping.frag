@@ -21,7 +21,7 @@ void main()
     normal = normalize(normal * 2.0 - 1.0);
 
     vec3 color = texture(diffuseMap, fs_in.TexCoords).rgb;
-    vec3 ambient = 1.0 * color;
+    vec3 ambient = 0.1 * color;
     vec3 lightDir = normalize(fs_in.TangentLightPos - fs_in.TangentFragPos);
     float diff = max(dot(lightDir, normal), 0.0);
     vec3 diffuse = diff * color;

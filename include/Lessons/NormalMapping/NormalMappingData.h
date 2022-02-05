@@ -10,8 +10,8 @@
 
 namespace NormalMappingData
 {
-    unsigned int SCR_WIDTH = 800;
-    unsigned int SCR_HEIGHT = 600;
+    unsigned int SCR_WIDTH = 1920;
+    unsigned int SCR_HEIGHT = 1080;
 
     ShaderProgram *shader;
 
@@ -22,7 +22,7 @@ namespace NormalMappingData
 
     unsigned int quadVAO = 0; 
     unsigned int quadVBO;
-    
+
 }
 
 
