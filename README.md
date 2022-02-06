@@ -130,3 +130,9 @@ I have learnt instancing today. I've understood that it is used for minimizing d
 I used to now a couple of things about Phong and Blinn-Phong Shading from my intro to graphics and advanced ray tracing courses. But this time, I have learnt how to implement them with shaders and opengl. I have understood their differences better.
 
 ![alt text](./gifs/phong_and_blinn_phong.gif)
+
+# Update 6th February 2022 - NormalMapping - ParallaxMapping
+
+I was dealing with shadow mapping techniques and right after learning them, I dived into normal and parallax mapping. I have implemented both of them and also added self shadowing to parallax mapping
+
+![alt text](./gifs/normal_parallax_mapping.gif)
