@@ -1,5 +1,5 @@
-#ifndef __HDR_DATA_H__
-#define __HDR_DATA_H__
+#ifndef __BLOOM_DATA_H__
+#define __BLOOM_DATA_H__
 
 #include <vector>
 #include <glm/glm.hpp>
@@ -8,30 +8,35 @@
 #include <ShaderProgram.h>
 #include <Model.h>
 
-namespace HdrData
+namespace BloomData
 {
     unsigned int SCR_WIDTH = 800;
     unsigned int SCR_HEIGHT = 600;
 
-    bool hdr = true;
-    bool hdrKeyPressed = false;
+    bool bloom = true;
+    bool bloomKeyPressed = false;
     float exposure = 1.0f;
 
     ShaderProgram *shader;
-    ShaderProgram *hdrShader;
+    ShaderProgram *shaderLight;
+    ShaderProgram *shaderBlur;
+    ShaderProgram *shaderBloomFinal;
 
     unsigned int woodTexture;
+    unsigned int containerTexture;
 
     unsigned int hdrFBO;
-    unsigned int colorBuffer;
+    unsigned int colorBuffers[2];
 
-    unsigned int cubeVAO;
-    unsigned int quadVAO;
+    unsigned int pingpongFBO[2];
+    unsigned int pingpongColorbuffers[2];
 
     std::vector<glm::vec3> lightPositions;
     std::vector<glm::vec3> lightColors;
-}
 
+    unsigned int cubeVAO;
+    unsigned int quadVAO;
+}
 
 
 #endif
