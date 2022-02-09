@@ -10,6 +10,7 @@
 
 #include <ShaderProgram.h>
 
+#define MAX_BONE_INFLUENCE 4
 
 enum TextureType
 {
@@ -27,6 +28,13 @@ struct Vertex
     glm::vec2 TexCoords;
     glm::vec3 Tangent;
     glm::vec3 Bitangent;
+
+        // bone indexes which will influence this vertex
+        int m_BoneIDs[MAX_BONE_INFLUENCE];
+
+        // weights from each bone
+        float m_Weights[MAX_BONE_INFLUENCE];
+
 };
 
 // Holds texture data of the mesh
@@ -76,17 +84,28 @@ public:
             {
                 number = std::to_string(nSpecular++);
                 glUniform1f(glGetUniformLocation(shaderProgram.id, ("material.texture_specular" + number).c_str()), i);
-            }                    
+            }
+            else if(type == TextureType::texture_normal)
+            {
+                number = std::to_string(nNormal++);
+                glUniform1f(glGetUniformLocation(shaderProgram.id, ("material.texture_normal" + number).c_str()), i);
+            }
+            else if(type == TextureType::texture_height)
+            {
+                number = std::to_string(nHeight++);
+                glUniform1f(glGetUniformLocation(shaderProgram.id, ("material.texture_height" + number).c_str()), i);
+            }
+            // Ileride roughness falan eklersing
 
             glBindTexture(GL_TEXTURE_2D, textures[i].id);         
-        }
-        glActiveTexture(GL_TEXTURE0);   
+        }   
 
         // draw mesh
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
      
+        glActiveTexture(GL_TEXTURE0);     
     }
 
     void DrawNoTexture(ShaderProgram &shaderProgram, unsigned int cubemap)
@@ -134,6 +153,14 @@ private:
         // vertex bitangent of vertices
         glEnableVertexAttribArray(4);
         glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Bitangent));
+
+            // id
+            glEnableVertexAttribArray(5);
+            glVertexAttribIPointer(5, 4, GL_INT, sizeof(Vertex), (void*)offsetof(Vertex, m_BoneIDs));
+
+            // weights
+            glEnableVertexAttribArray(6);
+            glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, m_Weights));
 
         // unbind vertex array object
         glBindVertexArray(0);

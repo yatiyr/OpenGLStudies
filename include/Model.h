@@ -16,9 +16,12 @@ class Model
 {
 public:
     std::vector<Texture> textures_loaded;
-    std::string path;
+    std::vector<Mesh> meshes;
+    std::string directory;    
+    std::string path;    
+    bool gammaCorrection;
 
-    Model(const char *path)
+    Model(const char *path, bool gamma = false) : gammaCorrection(gamma)
     {
         this->path = path;
         loadModel(path);
@@ -41,18 +44,15 @@ public:
         }
     }
 
-    std::vector<Mesh> meshes;
-
 private:
-
-    std::string directory;
     
 
     void loadModel(std::string path)
     {
         Assimp::Importer import;
         const aiScene *scene = import.ReadFile(path, 
-                                aiProcess_Triangulate | 
+                                aiProcess_Triangulate |
+                                aiProcess_GenSmoothNormals | 
                                 aiProcess_FlipUVs |
                                 aiProcess_CalcTangentSpace | 
                                 aiProcess_JoinIdenticalVertices |
@@ -119,6 +119,18 @@ private:
                 vec.x = mesh->mTextureCoords[0][i].x;
                 vec.y = mesh->mTextureCoords[0][i].y;
                 vertex.TexCoords = vec;
+
+                // tangent
+                vector.x = mesh->mTangents[i].x;
+                vector.y = mesh->mTangents[i].y;
+                vector.z = mesh->mTangents[i].z;
+                vertex.Tangent = vector;
+
+                // bitangent
+                vector.x = mesh->mBitangents[i].x;
+                vector.y = mesh->mBitangents[i].y;
+                vector.z = mesh->mBitangents[i].z;
+                vertex.Bitangent = vector;
             }
             else
                 vertex.TexCoords = glm::vec2(0.0f, 0.0f);
@@ -142,11 +154,22 @@ private:
         if(mesh->mMaterialIndex >= 0)
         {
             aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+
+            // get diffuse maps
             std::vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, TextureType::texture_diffuse);
             textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
 
+            // get specular maps
             std::vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, TextureType::texture_specular);
             textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+
+            // get normal maps
+            std::vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, TextureType::texture_normal);
+            textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
+
+            // get height maps
+            std::vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, TextureType::texture_height);
+            textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
           
         }
 

@@ -68,7 +68,7 @@ Renderer::Renderer()
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    _window = glfwCreateWindow(800, 600, "OpenGLStudies", nullptr, nullptr);
+    _window = glfwCreateWindow(1600, 800, "OpenGLStudies", nullptr, nullptr);
     if(_window == nullptr)
     {
         glfwTerminate();

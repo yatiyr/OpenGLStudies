@@ -223,7 +223,7 @@ public:
         BloomData::shaderBloomFinal->setInt("bloom", BloomData::bloom);
         BloomData::shaderBloomFinal->setFloat("exposure", BloomData::exposure);
         renderQuad();
-        std::cout << "bloom: " << (BloomData::bloom ? "on" : "off") << "| exposure: " << BloomData::exposure << std::endl;        
+        //std::cout << "bloom: " << (BloomData::bloom ? "on" : "off") << "| exposure: " << BloomData::exposure << std::endl;        
     }
 
     static void clean()
