@@ -1,6 +1,6 @@
 #include <Renderer.h>
 
-#include <Lessons/Bloom/Bloom.h>
+#include <Lessons/DeferredShading/DeferredShading.h>
 
 void Renderer::RegisterCallbacks()
 {
@@ -46,7 +46,7 @@ void Renderer::ProcessInput()
         activeCamera->ProcessKeyboard(RIGHT, deltaTime);
     }
 
-    Bloom::processInput(_window);
+    //Bloom::processInput(_window);
 }
 
 Renderer::Renderer()
@@ -88,7 +88,7 @@ Renderer::Renderer()
     }
 
     // Put here initialConf() function of specific lesson class
-    Bloom::initialConf();
+    DeferredShading::initialConf();
 }
 
 void Renderer::Run() 
@@ -112,7 +112,7 @@ void Renderer::Run()
         ProcessInput();
 
         // Put here draw() function of lesson class
-        Bloom::draw(activeCamera, currentFrame);
+        DeferredShading::draw(activeCamera, currentFrame);
 
         // swap the color buffer (a large 2D buffer that
         //                        contains color values
@@ -154,7 +154,7 @@ void Renderer::Run()
     // glDeleteProgram(_shaderPrograms[1].id);
 
     // Put here clean function of lesson class
-    Bloom::clean();
+    DeferredShading::clean();
 
     // To exit gracefully, we clean all of GLFW's
     // resources that were allocated
