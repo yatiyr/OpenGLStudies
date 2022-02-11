@@ -1,6 +1,6 @@
 #include <Renderer.h>
 
-#include <Lessons/DeferredShading/DeferredShading.h>
+#include <Lessons/Ssao/Ssao.h>
 
 void Renderer::RegisterCallbacks()
 {
@@ -88,7 +88,7 @@ Renderer::Renderer()
     }
 
     // Put here initialConf() function of specific lesson class
-    DeferredShading::initialConf();
+    Ssao::initialConf();
 }
 
 void Renderer::Run() 
@@ -112,7 +112,7 @@ void Renderer::Run()
         ProcessInput();
 
         // Put here draw() function of lesson class
-        DeferredShading::draw(activeCamera, currentFrame);
+        Ssao::draw(activeCamera, currentFrame);
 
         // swap the color buffer (a large 2D buffer that
         //                        contains color values
@@ -154,7 +154,7 @@ void Renderer::Run()
     // glDeleteProgram(_shaderPrograms[1].id);
 
     // Put here clean function of lesson class
-    DeferredShading::clean();
+    Ssao::clean();
 
     // To exit gracefully, we clean all of GLFW's
     // resources that were allocated
