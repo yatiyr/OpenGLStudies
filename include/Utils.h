@@ -143,6 +143,6 @@ static unsigned int TextureFromFile(const char* path, const std::string &directo
     }
 
     return textureID;
-}
+}                                              
 
 #endif

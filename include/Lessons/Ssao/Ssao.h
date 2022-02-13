@@ -41,6 +41,8 @@ public:
         std::string backpackPath = ROOT_DIR + std::string("assets/models/backpack/backpack.obj");
         SsaoData::backpack = new Model(backpackPath.c_str());
 
+        SsaoData::sphere = new Sphere();
+
         glGenFramebuffers(1, &SsaoData::gBuffer);
         glBindFramebuffer(GL_FRAMEBUFFER, SsaoData::gBuffer);
 
@@ -201,6 +203,11 @@ public:
             model = glm::scale(model, glm::vec3(1.0f));
             SsaoData::shaderGeometryPass->set4Matrix("model", model);
             SsaoData::backpack->Draw(*SsaoData::shaderGeometryPass);
+
+            model = glm::translate(model, glm::vec3(0.0f, 3.0f, 0.0f));
+            model = glm::scale(model, glm::vec3(0.6f, 0.6f, 0.6f));
+            SsaoData::shaderGeometryPass->set4Matrix("model", model);
+            SsaoData::sphere->draw();
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         // 2. generate SSAO texture

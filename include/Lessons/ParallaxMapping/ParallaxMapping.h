@@ -25,6 +25,8 @@ public:
         ParallaxMappingData::normalMap = LoadTexture(normalTexturePath.c_str());
         ParallaxMappingData::heightMap = LoadTexture(heightTexturePath.c_str());
 
+        ParallaxMappingData::sphere = new Sphere();
+
         ParallaxMappingData::shader->use();
         ParallaxMappingData::shader->setInt("diffuseMap", 0);
         ParallaxMappingData::shader->setInt("normalMap", 1);
@@ -50,7 +52,7 @@ public:
         glm::mat4 model = glm::mat4(1.0f);
         //model = glm::rotate(model, glm::radians(currentFrame * -0.1f), glm::normalize(glm::vec3(1.0, 0.0, 1.0)));
         model = glm::scale(model, glm::vec3(5.0,5.0,5.0));
-        ParallaxMappingData::lightPos = glm::vec3(8.0 * sin(currentFrame * 0.4), 1.0, 5.0 * cos(currentFrame * 0.4) + 6);
+        ParallaxMappingData::lightPos = glm::vec3(15.0 * sin(currentFrame * 0.4), 1.0, 15.0 * cos(currentFrame * 0.4) + 6);
         ParallaxMappingData::shader->set4Matrix("model", model);
         ParallaxMappingData::shader->setVec3("viewPos", cam->Position);
         ParallaxMappingData::shader->setVec3("lightPos", ParallaxMappingData::lightPos);
@@ -62,6 +64,11 @@ public:
         glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_2D, ParallaxMappingData::heightMap);
         renderQuad();
+
+        //model = glm::translate(model, glm::vec3(10.0f, 5.0f, 5.0f));
+        model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));
+        ParallaxMappingData::shader->set4Matrix("model", model);
+        ParallaxMappingData::sphere->draw();
 
         // render light source
         model = glm::mat4(1.0f);

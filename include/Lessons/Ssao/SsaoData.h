@@ -7,6 +7,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <ShaderProgram.h>
 #include <Model.h>
+#include <Geometry/Sphere.h>
 
 namespace SsaoData
 {
@@ -19,6 +20,8 @@ namespace SsaoData
     ShaderProgram *shaderSSAOBlur;
 
     Model *backpack;
+
+    Sphere *sphere;
 
     unsigned int gBuffer;
     unsigned int gPosition, gNormal, gAlbedo;

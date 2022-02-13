@@ -7,6 +7,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <ShaderProgram.h>
 #include <Model.h>
+#include <Geometry/Sphere.h>
 
 namespace ParallaxMappingData
 {
@@ -14,6 +15,8 @@ namespace ParallaxMappingData
     unsigned int SCR_HEIGHT = 1080;
 
     ShaderProgram *shader;
+
+    Sphere *sphere;
 
     unsigned int diffuseMap;
     unsigned int normalMap;

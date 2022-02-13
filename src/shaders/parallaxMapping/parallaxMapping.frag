@@ -19,10 +19,10 @@ float parallaxShadowMultiplier(in vec3 lightDir, in vec2 initialTexCoord, in flo
 {
     float shadowMultiplier = 1;
 
-    const float minLayers = 32;
-    const float maxLayers = 128;
+    const float minLayers = 256;
+    const float maxLayers = 512;
 
-    if(dot(vec3(0.0, 0.0, 1.0), lightDir) > 0)
+    if(dot(vec3(0.0, 0.0, 1.0), lightDir) >= 0)
     {
         float numSamplesUnderSurface = 0;
         shadowMultiplier = 0;
@@ -46,7 +46,7 @@ float parallaxShadowMultiplier(in vec3 lightDir, in vec2 initialTexCoord, in flo
             {
                 // calculate partial shadowing factor
                 numSamplesUnderSurface += 1;
-                float newShadowMultiplier = (currentLayerHeight - heightFromTexture) * (1.0 - stepIndex / numLayers);
+                float newShadowMultiplier = (currentLayerHeight - heightFromTexture) * (1.0 - stepIndex / numLayers) * (dot(vec3(0.0, 0.0, 1.0), lightDir));
                 shadowMultiplier = max(shadowMultiplier, newShadowMultiplier);
             }
 
@@ -77,8 +77,8 @@ float parallaxShadowMultiplier(in vec3 lightDir, in vec2 initialTexCoord, in flo
 vec2 ParallaxMapping(in vec2 texCoords, in vec3 viewDir, out float parallaxHeight)
 {
     // number of depth layers
-    const float minLayers = 32;
-    const float maxLayers = 128;
+    const float minLayers = 256;
+    const float maxLayers = 512;
     float numLayers = mix(maxLayers, minLayers, abs(dot(vec3(0.0, 0.0, 1.0), viewDir)));
 
     // calculate the size of each layer
@@ -129,8 +129,8 @@ void main()
 
     float parallaxHeight;
     texCoords = ParallaxMapping(fs_in.TexCoords, viewDir, parallaxHeight);
-    if(texCoords.x > 1.0 || texCoords.y > 1.0 || texCoords.x < 0.0 || texCoords.y < 0.0)
-        discard;
+    //if(texCoords.x > 1.0 || texCoords.y > 1.0 || texCoords.x < 0.0 || texCoords.y < 0.0)
+        //discard;
 
 
     // obtain normal from normal map
@@ -154,7 +154,7 @@ void main()
 
     // get self-shadowing factor
     float layerHeight;
-    float shadowMultiplier = parallaxShadowMultiplier(lightDir, texCoords, parallaxHeight - 0.02, layerHeight);
+    float shadowMultiplier = parallaxShadowMultiplier(lightDir, texCoords, parallaxHeight - 0.01, layerHeight);
 
-    FragColor = vec4(ambient + (diffuse + specular) * pow(shadowMultiplier, 16), 1.0);//vec4(vec3(parallaxHeight), 1.0);
+    FragColor = vec4(ambient + (diffuse + specular)  * pow(shadowMultiplier, 16), 1.0);//vec4(vec3(parallaxHeight), 1.0);
 }
