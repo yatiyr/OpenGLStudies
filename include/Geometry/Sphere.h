@@ -11,7 +11,7 @@
 class Sphere
 {
 public:
-    Sphere(float radius);
+    Sphere(float radius, bool smooth);
     ~Sphere();
 
 protected:
@@ -19,6 +19,7 @@ protected:
 // -------------------------------------------------- //
 //                  MEMBER VARIABLES                  //
     float radius;
+    bool smooth;
 
     std::vector<glm::vec3>    vertices;
     std::vector<glm::vec3>    normals;
@@ -35,6 +36,7 @@ protected:
 //                  VIRTUAL FUNCTIONS                 //
 
     virtual void BuildVertices() = 0;
+    virtual void BuildVerticesFlat() = 0;
 
 // -------------------------------------------------- //
 //                  SHARED FUNCTIONS                  //
@@ -88,6 +90,8 @@ protected:
 
 public:
     void Draw() const;
+
+    void SetSmooth(bool smooth);
 };
 
 

@@ -1,9 +1,10 @@
 #include <Geometry/Icosphere.h>
 
 
-Icosphere::Icosphere(float radius, int subdivision) : Sphere(radius), subdivision(subdivision)
+Icosphere::Icosphere(float radius, int subdivision, bool smooth) : Sphere(radius, smooth), subdivision(subdivision)
 {
-    BuildVertices();
+    if(smooth)
+        BuildVertices();
 }
 
 
@@ -100,6 +101,11 @@ std::vector<glm::vec3> Icosphere::ComputeIcosahedronVertices()
 
     return verts;
 
+}
+
+void Icosphere::BuildVerticesFlat()
+{
+    
 }
 
 void Icosphere::BuildVertices()

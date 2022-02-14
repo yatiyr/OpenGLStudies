@@ -17,7 +17,7 @@
 class Icosphere : public Sphere
 {
 public:
-    Icosphere(float radius=1.0f, int subdivision=1);
+    Icosphere(float radius=1.0f, int subdivision=1, bool smooth = true);
     ~Icosphere() {}
 
     int GetSubdivision()      const {return subdivision;}
@@ -31,6 +31,8 @@ public:
 private:
 
     virtual void BuildVertices();
+    virtual void BuildVerticesFlat();
+    
     void SubdivideVertices();
 
 

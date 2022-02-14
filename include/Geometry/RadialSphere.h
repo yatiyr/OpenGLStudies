@@ -7,7 +7,7 @@
 class RadialSphere : public Sphere
 {
 public:
-    RadialSphere(float radius=1.0f, int sectorCount=64, int stackCount=64);
+    RadialSphere(float radius=1.0f, int sectorCount=64, int stackCount=64, bool smooth = true);
     ~RadialSphere() {}
 
     float GetSectorCount()      const {return sectorCount;}
@@ -23,6 +23,7 @@ public:
 private:
 
     virtual void BuildVertices();
+    virtual void BuildVerticesFlat();
                                                    
     // member variables
     int sectorCount;

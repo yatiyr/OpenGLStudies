@@ -7,7 +7,7 @@ const int MIN_STACK_COUNT = 2;
 // TODO: READ THIS 
 // https://community.khronos.org/t/generating-tangents-bitangents-for-triangle-strip-sphere/75446
 
-RadialSphere::RadialSphere(float radius, int sectors, int stacks) : Sphere(radius)
+RadialSphere::RadialSphere(float radius, int sectors, int stacks, bool smooth) : Sphere(radius, smooth)
 {
     Set(radius, sectors, stacks);
 }
@@ -22,7 +22,10 @@ void RadialSphere::Set(float radius, int sectors, int stacks)
     if(stacks < MIN_STACK_COUNT)
         this->stackCount = MIN_STACK_COUNT;
 
-    BuildVertices();
+    if(smooth)
+        BuildVertices();
+    else
+        BuildVerticesFlat();
 }
 
 void RadialSphere::SetRadius(float radius)
@@ -59,6 +62,160 @@ void RadialSphere::PrintSelf() const
               << " TexCoord Count:" << GetTexCoordCount() << std::endl;
 }
 
+// Each triangle is independent
+void RadialSphere::BuildVerticesFlat()
+{
+    const float PI = acos(-1);
+
+    // tmp vertex definition
+    struct Vertex
+    {
+        float x,y,z,s,t;
+    };
+
+    std::vector<Vertex> tmpVertices;
+
+    float sectorStep  = 2 * PI / sectorCount;
+    float stackStep   = PI / stackCount;
+    float sectorAngle, stackAngle;
+
+    // compute all vertices first without computing normals
+    for(int i=0; i<=stackCount; i++)
+    {
+        stackAngle = PI / 2 - i * stackStep;      // starting from pi/2 to -pi/2
+        float xz   = radius * cosf(stackAngle);   // r * cos(u)
+        float y    = radius * sinf(stackAngle);   // r * sin(u)
+
+        // add (sectorCount + 1) vertices per stack
+        // the first and last vertices have same position and normal
+        // but different tex coords
+        for(int j=0; j<=sectorCount; j++)
+        {
+            sectorAngle = j * sectorStep;         // starting from 0 to 2pi
+
+            Vertex vertex;
+            vertex.x = xz * sinf(sectorAngle);    // x = r * cos(u) * sin(v)
+            vertex.y = y;                         // y = r * sin(u)
+            vertex.z = xz * cosf(sectorAngle);    // z = r * cos(u) * cos(v)
+            vertex.s = (float)j / sectorCount;    // s
+            vertex.t = (float)i / stackCount;      // t
+            tmpVertices.push_back(vertex);
+        }
+    }
+
+    // clear memory
+    ClearArrays();
+
+    Vertex v1, v2, v3, v4;                   // 4 vertex positions and tex coords
+    glm::vec3 n;                             // 1 face normal
+
+    int i, j, k, vi1, vi2;
+    int index = 0;                           // index for vertex
+    for(i=0; i<stackCount; i++)
+    {
+        vi1 = i * (sectorCount + 1);         // index of tmpVertices
+        vi2 = (i + 1) * (sectorCount + 1);
+
+        for(j=0; j<sectorCount; j++, vi1++, vi2++)
+        {
+            // get 4 vertices per sector
+            // v1--v3
+            // |    |
+            // v2--v4
+            v1 = tmpVertices[vi1];
+            v2 = tmpVertices[vi2];
+            v3 = tmpVertices[vi1 + 1];
+            v4 = tmpVertices[vi2 + 1];
+
+            // if 1st stack and last stack, store only 1 triangle per sector
+            // otherwise, store 2 triangles (quad) per sector
+            if(i==0) // a triangle for first stack -------------------------
+            {
+                // add vertices of triangle
+                vertices.push_back(glm::vec3(v1.x, v1.y, v1.z));
+                vertices.push_back(glm::vec3(v2.x, v2.y, v2.z));
+                vertices.push_back(glm::vec3(v4.x, v4.y, v4.z));
+
+                // put tex coords of triangle
+                texCoords.push_back(glm::vec2(v1.s, v1.t));
+                texCoords.push_back(glm::vec2(v2.s, v2.t));
+                texCoords.push_back(glm::vec2(v4.s, v4.t));
+
+                // put normal
+                n = ComputeFaceNormal(glm::vec3(v1.x,v1.y,v1.z), glm::vec3(v2.x,v2.y,v2.z), glm::vec3(v4.x,v4.y,v4.z));
+                for(k=0; k<3; k++) // same normal for three vertices
+                {
+                    normals.push_back(n);
+                }
+
+                // put indices of 1 triangle
+                AddIndices(index, index+1, index+2);
+
+                index += 3; // get next index
+            }
+            else if(i==(stackCount-1)) // a triangle for last stack --------
+            {
+                // put a triangle
+                vertices.push_back(glm::vec3(v1.x, v1.y, v1.z));
+                vertices.push_back(glm::vec3(v2.x, v2.y, v2.z));
+                vertices.push_back(glm::vec3(v3.x, v3.y, v3.z));
+
+                // put tex coords of triangle
+                texCoords.push_back(glm::vec2(v1.s, v1.t));
+                texCoords.push_back(glm::vec2(v2.s, v2.t));
+                texCoords.push_back(glm::vec2(v3.s, v3.t));
+
+                // put normal
+                n = ComputeFaceNormal(glm::vec3(v1.x,v1.y,v1.z), glm::vec3(v2.x,v2.y,v2.z), glm::vec3(v3.x,v3.y,v3.z));               
+                for(k=0; k<3; k++) // same normal for three vertices
+                {
+                    normals.push_back(n);
+                }
+
+                // put indices of 1 triangle
+                AddIndices(index, index+1, index+2);
+
+                index += 3; // get next index
+            }
+            else // 2 triangles for others ----------------------------------
+            {
+                // put quad vertices: v1-v2-v3-v4
+                vertices.push_back(glm::vec3(v1.x, v1.y, v1.z));
+                vertices.push_back(glm::vec3(v2.x, v2.y, v2.z));
+                vertices.push_back(glm::vec3(v3.x, v3.y, v3.z));
+                vertices.push_back(glm::vec3(v4.x, v4.y, v4.z));
+
+                // put tex coords of quad
+                texCoords.push_back(glm::vec2(v1.s, v1.t));
+                texCoords.push_back(glm::vec2(v2.s, v2.t));
+                texCoords.push_back(glm::vec2(v3.s, v3.t));
+                texCoords.push_back(glm::vec2(v4.s, v4.t));
+
+
+                // put normal
+                n = ComputeFaceNormal(glm::vec3(v1.x,v1.y,v1.z), glm::vec3(v2.x,v2.y,v2.z), glm::vec3(v3.x,v3.y,v3.z));
+                for(k=0; k<4; k++) // same normal for four vertices
+                {
+                    normals.push_back(n);
+                }
+
+                // put indices of quad (2 triangles)
+                //          v1-v2-v3 and v3-v2-v4
+                // v1--v3
+                // |    |
+                // v2--v4                
+                AddIndices(index, index+1, index+2);
+                AddIndices(index+2, index+1, index+3);
+
+                index += 4;
+            }
+        }
+    }
+
+    SetupTangentBitangents();
+    SetupArrayBuffer();
+    SetupMesh();    
+}
 
 
 void RadialSphere::BuildVertices()

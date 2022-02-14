@@ -1,13 +1,23 @@
 #include <Geometry/Sphere.h>
 
 
-Sphere::Sphere(float radius) : radius(radius) {}
+Sphere::Sphere(float radius, bool smooth) : radius(radius), smooth(smooth) {}
 
 Sphere::~Sphere()
 {
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
     glDeleteBuffers(1, &EBO);
+}
+
+void Sphere::SetSmooth(bool smooth)
+{
+    this->smooth = smooth;
+
+    if(smooth)
+        BuildVertices();
+    else
+        BuildVerticesFlat();
 }
 
 unsigned int Sphere::GetVertexCount() const     {return (unsigned int) vertices.size() / 3;}
@@ -241,6 +251,7 @@ glm::vec3 Sphere::ComputeFaceNormal(const glm::vec3& v1, const glm::vec3& v2, co
     if(glm::length(normal) > EPSILON)
     {
         normal = glm::normalize(normal);
+        return normal;
     }
     
 
