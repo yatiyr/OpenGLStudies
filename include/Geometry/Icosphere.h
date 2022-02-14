@@ -32,8 +32,9 @@ private:
 
     virtual void BuildVertices();
     virtual void BuildVerticesFlat();
-    
+
     void SubdivideVertices();
+    void SubdivideVerticesFlat();
 
 
     std::vector<glm::vec3> ComputeIcosahedronVertices();

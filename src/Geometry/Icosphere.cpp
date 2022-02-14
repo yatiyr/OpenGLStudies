@@ -5,6 +5,8 @@ Icosphere::Icosphere(float radius, int subdivision, bool smooth) : Sphere(radius
 {
     if(smooth)
         BuildVertices();
+    else
+        BuildVerticesFlat();
 }
 
 
@@ -105,7 +107,87 @@ std::vector<glm::vec3> Icosphere::ComputeIcosahedronVertices()
 
 void Icosphere::BuildVerticesFlat()
 {
-    
+    const float S_STEP = 1 / 11.0f;
+    const float T_STEP = 1 / 3.0f;
+
+    // compute 12 vertices of icosahedron
+    std::vector<glm::vec3> tmpVertices = ComputeIcosahedronVertices();
+
+    // clear memory
+    ClearArrays();
+
+    glm::vec3 v0, v1, v2, v3, v4, v11;  // vertex positions
+    glm::vec3 n;                        // face normal
+    glm::vec2 t0, t1, t2, t3, t4, t11;  // texCoords
+    unsigned int index = 0;
+
+    // compute and add 20 triangles of icosahedron
+    v0  = tmpVertices[0];
+    v11 = tmpVertices[11];
+    for(int i=1; i<=5; i++)
+    {
+        // 4 vertices in the 2nd row
+        v1 = tmpVertices[i];
+        if(i < 5)
+            v2 = tmpVertices[i + 1];
+        else
+            v2 = tmpVertices[1];
+
+        v3 = tmpVertices[i + 5];
+        if((i+5) < 10)
+            v4 = tmpVertices[i+6];
+        else
+            v4 = tmpVertices[6];
+
+
+        // texCoords
+        t0.x  = (2 * i - 1) * S_STEP;    t0.y  = 0;
+        t1.x  = (2 * i - 2) * S_STEP;    t1.y  = T_STEP;
+        t2.x  = (2 * i - 0) * S_STEP;    t2.y  = T_STEP;
+        t3.x  = (2 * i - 1) * S_STEP;    t3.y  = T_STEP * 2;
+        t4.x  = (2 * i + 1) * S_STEP;    t4.y  = T_STEP * 2;
+        t11.x =   (2 * i)   * S_STEP;    t11.y = T_STEP * 3;
+
+
+        // add a triangle in 1st row
+        n = ComputeFaceNormal(v0, v1, v2);
+        vertices.push_back(v0);   vertices.push_back(v1);   vertices.push_back(v2);
+        normals.push_back(n);     normals.push_back(n);     normals.push_back(n);
+        texCoords.push_back(t0);  texCoords.push_back(t1);  texCoords.push_back(t2);
+        AddIndices(index, index + 1, index + 2);
+
+        // add 2 triangles in 2nd row
+        n = ComputeFaceNormal(v1, v3, v2);
+        vertices.push_back(v1);   vertices.push_back(v3);   vertices.push_back(v2);
+        normals.push_back(n);     normals.push_back(n);     normals.push_back(n);
+        texCoords.push_back(t1);  texCoords.push_back(t3);  texCoords.push_back(t2);
+        AddIndices(index + 3, index + 4, index + 5);   
+
+        n = ComputeFaceNormal(v2, v3, v4);
+        vertices.push_back(v2);   vertices.push_back(v3);   vertices.push_back(v4);
+        normals.push_back(n);     normals.push_back(n);     normals.push_back(n);
+        texCoords.push_back(t2);  texCoords.push_back(t3);  texCoords.push_back(t4);
+        AddIndices(index + 6, index + 7, index + 8);               
+
+        // add a triangle in 3rd row
+        n = ComputeFaceNormal(v3, v11, v4);
+        vertices.push_back(v3);   vertices.push_back(v11);   vertices.push_back(v4);
+        normals.push_back(n);     normals.push_back(n);     normals.push_back(n);
+        texCoords.push_back(t3);  texCoords.push_back(t11);  texCoords.push_back(t4);
+        AddIndices(index + 9, index + 10, index + 11);
+
+
+
+        index += 12; // get next index
+
+    }
+
+    // subdivide icosahedron
+    SubdivideVerticesFlat();
+
+    SetupTangentBitangents();
+    SetupArrayBuffer();
+    SetupMesh();    
 }
 
 void Icosphere::BuildVertices()
@@ -308,6 +390,82 @@ void Icosphere::BuildVertices()
     SetupMesh();
 }
 
+
+void Icosphere::SubdivideVerticesFlat()
+{
+    std::vector<glm::vec3> tmpVertices;
+    std::vector<glm::vec2> tmpTexCoords;
+    std::vector<unsigned int> tmpIndices;
+    int indexCount;
+    glm::vec3 v1, v2, v3;               // original vertices of a triangle
+    glm::vec2 t1, t2, t3;               // original texcoords of a triangle
+    glm::vec3 newV1, newV2, newV3;      // new subdivided vertex positions
+    glm::vec2 newT1, newT2, newT3;      // new subdivided texture coords
+    glm::vec3 normal;                   // new face normal
+    unsigned int index = 0;
+    int i,j;
+
+    // iteration
+    for(i=1; i<=subdivision; i++)
+    {
+        // copy prev arrays
+        tmpVertices  = vertices;
+        tmpTexCoords = texCoords;
+        tmpIndices   = indices;
+
+        // clear memory
+        ClearArrays();
+
+        index = 0;
+        indexCount = (int)tmpIndices.size();
+        for(j=0; j<indexCount; j+=3)
+        {
+            // get 3 vertices and texcoords of a triangle
+            v1 = tmpVertices[tmpIndices[j]];
+            v2 = tmpVertices[tmpIndices[j+1]];
+            v3 = tmpVertices[tmpIndices[j+2]];
+
+            t1 = tmpTexCoords[tmpIndices[j]];
+            t2 = tmpTexCoords[tmpIndices[j+1]];
+            t3 = tmpTexCoords[tmpIndices[j+2]];
+
+            // get 3 new vertices by splitting half on each edge
+            ComputeHalfVertex(v1, v2, radius, newV1);
+            ComputeHalfVertex(v2, v3, radius, newV2);
+            ComputeHalfVertex(v1, v3, radius, newV3);
+            ComputeHalfTexCoord(t1, t2, newT1);
+            ComputeHalfTexCoord(t2, t3, newT2);
+            ComputeHalfTexCoord(t1, t3, newT3);
+
+            // add 4 new triangles
+            normal = ComputeFaceNormal(v1, newV1, newV3);
+            vertices.push_back(v1);      vertices.push_back(newV1);   vertices.push_back(newV3);
+            normals.push_back(normal);   normals.push_back(normal);   normals.push_back(normal);
+            texCoords.push_back(t1);     texCoords.push_back(newT1);  texCoords.push_back(newT3);
+            AddIndices(index, index + 1, index + 2);
+
+            normal = ComputeFaceNormal(newV1, v2, newV2);
+            vertices.push_back(newV1);      vertices.push_back(v2);   vertices.push_back(newV2);
+            normals.push_back(normal);   normals.push_back(normal);   normals.push_back(normal);
+            texCoords.push_back(newT1);     texCoords.push_back(t2);  texCoords.push_back(newT2);
+            AddIndices(index + 3, index + 4, index + 5);
+
+            normal = ComputeFaceNormal(newV1, newV2, newV3);
+            vertices.push_back(newV1);      vertices.push_back(newV2);   vertices.push_back(newV3);
+            normals.push_back(normal);   normals.push_back(normal);   normals.push_back(normal);
+            texCoords.push_back(newT1);     texCoords.push_back(newT2);  texCoords.push_back(newT3);
+            AddIndices(index + 6, index + 7, index + 8);
+
+            normal = ComputeFaceNormal(newV3, newV2, v3);
+            vertices.push_back(newV3);      vertices.push_back(newV2);   vertices.push_back(v3);
+            normals.push_back(normal);   normals.push_back(normal);   normals.push_back(normal);
+            texCoords.push_back(newT3);     texCoords.push_back(newT2);  texCoords.push_back(t3);
+            AddIndices(index + 9, index + 10, index + 11);
+
+            index += 12;
+        }
+    }                    
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // divide a trianlge (v1-v2-v3) into 4 sub triangles by adding middle vertices
