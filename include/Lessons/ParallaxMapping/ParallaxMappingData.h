@@ -7,7 +7,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <ShaderProgram.h>
 #include <Model.h>
-#include <Geometry/Sphere.h>
+#include <Geometry/Icosphere.h>
 
 namespace ParallaxMappingData
 {
@@ -16,7 +16,7 @@ namespace ParallaxMappingData
 
     ShaderProgram *shader;
 
-    Sphere *sphere;
+    Icosphere *sphere;
 
     unsigned int diffuseMap;
     unsigned int normalMap;
