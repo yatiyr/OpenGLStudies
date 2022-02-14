@@ -1,65 +1,69 @@
 #include <Geometry/Sphere.h>
 
 
-const int MIN_SECTOR_COUNT = 3;
-const int MIN_STACK_COUNT = 2;
+Sphere::Sphere(float radius) : radius(radius) {}
 
-// TODO: READ THIS 
-// https://community.khronos.org/t/generating-tangents-bitangents-for-triangle-strip-sphere/75446
-
-Sphere::Sphere(float radius, int sectors, int stacks) : interleavedStride(56)
+Sphere::~Sphere()
 {
-    set(radius, sectors, stacks);
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
+    glDeleteBuffers(1, &EBO);
 }
 
-void Sphere::set(float radius, int sectors, int stacks)
-{
-    this->radius = radius;
-    this->sectorCount = sectors;
-    if(sectors < MIN_SECTOR_COUNT)
-        this->sectorCount = MIN_SECTOR_COUNT;
-    this->stackCount = stacks;
-    if(stacks < MIN_STACK_COUNT)
-        this->stackCount = MIN_STACK_COUNT;
+unsigned int Sphere::GetVertexCount() const     {return (unsigned int) vertices.size() / 3;}
+unsigned int Sphere::GetNormalCount() const     {return (unsigned int) normals.size() / 3;}
+unsigned int Sphere::GetBitangentCount() const  {return (unsigned int) bitangents.size() / 3;}
+unsigned int Sphere::GetTangentCount() const    {return (unsigned int) tangents.size() / 3;}
+unsigned int Sphere::GetTexCoordCount() const   {return (unsigned int) texCoords.size() / 2;}
+unsigned int Sphere::GetIndexCount() const      {return (unsigned int)indices.size();}
+unsigned int Sphere::GetTriangleCount() const   {return GetIndexCount() / 3;}
+unsigned int Sphere::GetVertexSize() const      {return (unsigned int)vertices.size() * sizeof(float);}
+unsigned int Sphere::GetNormalSize() const      {return (unsigned int)normals.size() * sizeof(float);}
+unsigned int Sphere::GetTangentSize() const     {return (unsigned int)tangents.size() * sizeof(float);}
+unsigned int Sphere::GetBitangentSize() const   {return (unsigned int)bitangents.size() * sizeof(float);}
+unsigned int Sphere::GetTexCoordSize() const    {return (unsigned int)texCoords.size() * sizeof(float);}
+unsigned int Sphere::GetIndexSize() const       {return (unsigned int)indices.size() * sizeof(unsigned int);}
+float        Sphere::GetRadius() const          {return radius;}
 
-    buildVertices();
+const std::vector<glm::vec3> Sphere::GetVertices()   const {return vertices;}
+const std::vector<glm::vec3> Sphere::GetNormals()    const {return normals;}
+const std::vector<glm::vec3> Sphere::GetTangents()   const {return tangents;}
+const std::vector<glm::vec3> Sphere::GetBitangents() const {return bitangents;}
+const std::vector<glm::vec2> Sphere::GetTexCoords()  const {return texCoords;}
+const unsigned int* Sphere::GetIndices() const {return indices.data();}
+// This function gives tangent and bitangent vectors from a triangle
+// providing 3 position and 3 texture coordinates
+std::vector<glm::vec3> Sphere::CalcTangentBitangents(glm::vec3 pos1, glm::vec3 pos2, glm::vec3 pos3,
+                                                     glm::vec2 uv1, glm::vec2 uv2, glm::vec2 uv3)
+    {
+    std::vector<glm::vec3> result;
+
+    glm::vec3 tangent, bitangent;
+
+    glm::vec3 edge1 = pos2 - pos1;
+    glm::vec3 edge2 = pos3 - pos1;
+
+    glm::vec2 deltaUV1 = uv2 - uv1;
+    glm::vec2 deltaUV2 = uv3 - uv1;
+
+    float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
+
+    tangent.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
+    tangent.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
+    tangent.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
+
+    bitangent.x = f * (-deltaUV2.x * edge1.x + deltaUV1.x * edge2.x);
+    bitangent.y = f * (-deltaUV2.x * edge1.y + deltaUV1.x * edge2.y);
+    bitangent.z = f * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z);
+
+    result.push_back(tangent);
+    result.push_back(bitangent);
+
+    return result;        
 }
 
-void Sphere::setRadius(float radius)
-{
-    if(radius != this->radius)
-        set(radius, sectorCount, stackCount);
-}
 
-void Sphere::setSectorCount(int sectors)
-{
-    if(sectors != this->sectorCount)
-        set(radius, sectors, stackCount);
-}
-
-void Sphere::setStackCount(int stacks)
-{
-    if(stacks != this->stackCount)
-        set(radius, sectorCount, stacks);
-}
-
-
-void Sphere::printSelf() const
-{
-    std::cout << "====== Sphere ======\n"
-              << "         Radius: " << radius << "\n"
-              << "   Sector Count:" << sectorCount << "\n"
-              << "    Stack Count:" << stackCount << "\n"
-              << " Triangle Count:" << getTriangleCount() << "\n"
-              << "    Index Count:" << getIndexCount() << "\n"
-              << "   Vertex Count:" << getVertexCount() << "\n"
-              << "   Normal Count:" << getNormalCount() << "\n"
-              << "Bitangent Count:" << getBitangentCount() << "\n"
-              << "  Tangent Count:" << getTangentCount() << "\n"
-              << " TexCoord Count:" << getTexCoordCount() << std::endl;
-}
-
-void Sphere::setupArrayBuffer()
+void Sphere::SetupArrayBuffer()
 {
     arrayBuffer.clear();
 
@@ -87,14 +91,12 @@ void Sphere::setupArrayBuffer()
         // Add bitangents
         arrayBuffer.push_back(bitangents[i].x);
         arrayBuffer.push_back(bitangents[i].y);
-        arrayBuffer.push_back(bitangents[i].z);
-    
+        arrayBuffer.push_back(bitangents[i].z);        
     }
 }
 
-void Sphere::setupMesh()
+void Sphere::SetupMesh()
 {
-
     // clear buffers if they are already allocated
     if(VAO != 0)
     {
@@ -139,127 +141,71 @@ void Sphere::setupMesh()
     glBindVertexArray(0);
 }
 
-// TODO: Will be implemented
-void Sphere::draw() const
+void Sphere::Draw() const
 {
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 }
 
-void Sphere::clearArrays()
+void Sphere::ClearArrays()
 {
     vertices.clear();
     normals.clear();
     tangents.clear();
+    bitangents.clear();
     texCoords.clear();
     indices.clear();
 }
 
-
-void Sphere::buildVertices()
+void Sphere::AddIndices(unsigned int i1, unsigned int i2, unsigned int i3)
 {
-    const float PI = acos(-1);
+    indices.push_back(i1);
+    indices.push_back(i2);
+    indices.push_back(i3);    
+}
 
-    // clear mem
-    clearArrays();
 
-    float xz;                            // position of vertex
-
-    float sectorStep = 2 * PI / sectorCount;
-    float stackStep  = PI / stackCount;
-    float sectorAngle, stackAngle;
-
-    glm::vec3 vertex(0.0f, 0.0f, 0.0f);
-    glm::vec2 texCoord(0.0f, 0.0f);
-
-    for(int i=0; i<=stackCount; i++)
-    {
-        // stack angle is fi
-        stackAngle = PI / 2 - i * stackStep; // starting from pi/2 to -pi/2
-        xz = radius * cosf(stackAngle);
-        vertex.y  = radius * sinf(stackAngle);
-
-        // add (sectorCount+1) vertices per stack
-        // the first and last vertices have same position and normal, but different tex coords
-        for(int j=0; j<=sectorCount; j++)
-        {
-            sectorAngle = j * sectorStep;
-
-            // vertex position
-            vertex.z = xz * cosf(sectorAngle);
-            vertex.x = xz * sinf(sectorAngle);
-            vertices.push_back(vertex);
-
-            // normalized vertex normal
-            vertex = glm::normalize(vertex);
-            normals.push_back(vertex);
-
-            // vertex tex coord between [0, 1]
-            texCoord.x = (float)j / sectorCount;
-            texCoord.y = (float)i / stackCount;
-            texCoords.push_back(texCoord);
-        }
-    }
+void Sphere::SetupTangentBitangents()
+{
 
     // initialize tangent and bitangent
     tangents   = std::vector<glm::vec3>(normals.size(), glm::vec3(0.0f));
     bitangents = std::vector<glm::vec3>(normals.size(), glm::vec3(0.0f));
 
-    // indices
-    //  k1--k1+1
-    //  |  / |
-    //  | /  |
-    //  k2--k2+1
-    unsigned int k1, k2;
-    for(int i=0; i<stackCount; i++)
+    // initialize vectors for vertices and texture coords
+    glm::vec3 v1, v2, v3;
+    glm::vec2 t1, t2, t3;
+
+    // traverse all triangles and calculate tangents and bitangents
+    // for all vertices
+    for(int i=0; i<indices.size(); i+=3)
     {
-        k1 = i * (sectorCount + 1); // beginning of current stack
-        k2 = k1 + sectorCount + 1;  // beginning of next stack
+        v1 = vertices[indices[i]];
+        v2 = vertices[indices[i+1]];
+        v3 = vertices[indices[i+2]];
 
-        for(int j=0; j<sectorCount; j++, k1++, k2++)
-        {
-            // 2 triangles per sector excluding 1st and last stacks
-            if(i != 0)
-            {
-                addIndices(k1, k2, k1+1);
-                std::vector<glm::vec3> tangentBitangents = calcTangentBitangents(vertices[k1], 
-                                                                                 vertices[k2],
-                                                                                 vertices[k1+1],
-                                                                                 texCoords[k1],
-                                                                                 texCoords[k2],
-                                                                                 texCoords[k1+1]);
-                tangents[k1]   += tangentBitangents[0];
-                bitangents[k1] += tangentBitangents[1];
+        t1 = texCoords[indices[i]];
+        t2 = texCoords[indices[i+1]];
+        t3 = texCoords[indices[i+2]];
 
-                tangents[k2]   += tangentBitangents[0];
-                bitangents[k2] += tangentBitangents[1];
+        // Get Tangent and Bitangent Vectors
+        std::vector<glm::vec3> TB = CalcTangentBitangents(v1,v2,v3,
+                                                          t1,t2,t3);
 
-                tangents[k1 + 1]   += tangentBitangents[0];
-                bitangents[k1 + 1] += tangentBitangents[1];                
-            }
-            if(i != (stackCount-1))
-            {
-                addIndices(k1+1, k2, k2+1);
+        tangents[indices[i]]     += TB[0];
+        bitangents[indices[i]]   += TB[1];
 
-                std::vector<glm::vec3> tangentBitangents = calcTangentBitangents(vertices[k1 + 1], 
-                                                                                 vertices[k2],
-                                                                                 vertices[k2 + 1],
-                                                                                 texCoords[k1 + 1],
-                                                                                 texCoords[k2],
-                                                                                 texCoords[k2+1]);                
-                tangents[k1 + 1]   += tangentBitangents[0];
-                bitangents[k1 + 1] += tangentBitangents[1];
+        tangents[indices[i+1]]   += TB[0];
+        bitangents[indices[i+1]] += TB[1];
 
-                tangents[k2]   += tangentBitangents[0];
-                bitangents[k2] += tangentBitangents[1];
+        tangents[indices[i+2]]   += TB[0];
+        bitangents[indices[i+2]] += TB[1];        
 
-                tangents[k2 + 1]   += tangentBitangents[0];
-                bitangents[k2 + 1] += tangentBitangents[1];                  
-            }
-        }
+
     }
 
+    // orthogonalize and normalize tangents and bitangents   
     for(int i=0; i<vertices.size(); i++)
     {
         glm::vec3 &normal = normals[i];
@@ -274,23 +220,29 @@ void Sphere::buildVertices()
         tangent = glm::normalize(tangent - normal * glm::dot(normal, tangent));
 
         // calculate handedness
-        if(glm::dot(glm::cross(tangent,normal), bitangent) < 0.0f)
+        if(glm::dot(glm::cross(tangent, normal), bitangent) < 0.0f)
             tangent *= -1.0f;
 
         bitangent = glm::normalize(glm::cross(tangent, normal));
-    }
-
-
-
-    setupArrayBuffer();
-    setupMesh();
+    }    
 }
 
 
-void Sphere::addIndices(unsigned int i1, unsigned int i2, unsigned int i3)
+glm::vec3 Sphere::ComputeFaceNormal(const glm::vec3& v1, const glm::vec3& v2, const glm::vec3& v3)
 {
-    indices.push_back(i1);
-    indices.push_back(i2);
-    indices.push_back(i3);
-}
+    const float EPSILON = 0.000001f;
 
+    glm::vec3 normal(0.0f);
+    
+    glm::vec3 e1 = v2 - v1;
+    glm::vec3 e2 = v3 - v1;
+
+    normal = glm::cross(e1, e2);
+    if(glm::length(normal) > EPSILON)
+    {
+        normal = glm::normalize(normal);
+    }
+    
+
+    return glm::vec3(0.0f);
+}

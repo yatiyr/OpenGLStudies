@@ -1,24 +1,24 @@
 #include <Geometry/Icosphere.h>
 
 
-Icosphere::Icosphere(float radius, int subdivision) : radius(radius), subdivision(subdivision), interleavedStride(56)
+Icosphere::Icosphere(float radius, int subdivision) : Sphere(radius), subdivision(subdivision)
 {
-    buildVertices();
+    BuildVertices();
 }
 
 
-void Icosphere::setRadius(float radius)
+void Icosphere::SetRadius(float radius)
 {
     if(radius > 0)
     {
         this->radius = radius;
-        updateRadius();
+        UpdateRadius();
     }
 }
 
-void Icosphere::updateRadius()
+void Icosphere::UpdateRadius()
 {
-    float scale = computeScaleForLength(vertices[0], radius);
+    float scale = ComputeScaleForLength(vertices[0], radius);
     std::size_t i, j;
     std::size_t count = vertices.size();
 
@@ -32,30 +32,30 @@ void Icosphere::updateRadius()
     }
 }
 
-void Icosphere::setSubdivision(int subdivision)
+void Icosphere::SetSubdivision(int subdivision)
 {
     this->subdivision = subdivision;
-    buildVertices();
+    BuildVertices();
 }
 
-void Icosphere::printSelf() const
+void Icosphere::PrintSelf() const
 {
     std::cout << "====== Sphere ======\n"
               << "         Radius: " << radius << "\n"
               << "Subdivision Count:" << subdivision << "\n"
-              << "   Triangle Count:" << getTriangleCount() << "\n"
-              << "      Index Count:" << getIndexCount() << "\n"
-              << "     Vertex Count:" << getVertexCount() << "\n"
-              << "     Normal Count:" << getNormalCount() << "\n"
-              << "  Bitangent Count:" << getBitangentCount() << "\n"
-              << "    Tangent Count:" << getTangentCount() << "\n"
-              << "   TexCoord Count:" << getTexCoordCount() << std::endl;
+              << "   Triangle Count:" << GetTriangleCount() << "\n"
+              << "      Index Count:" << GetIndexCount() << "\n"
+              << "     Vertex Count:" << GetVertexCount() << "\n"
+              << "     Normal Count:" << GetNormalCount() << "\n"
+              << "  Bitangent Count:" << GetBitangentCount() << "\n"
+              << "    Tangent Count:" << GetTangentCount() << "\n"
+              << "   TexCoord Count:" << GetTexCoordCount() << std::endl;
 }
 
 // Instead of the code I saw at "http://www.songho.ca/opengl/gl_sphere.html"
 // I wanted to use a right hand coordinate system where bottom to top vector
 // is aligned with y axis
-std::vector<glm::vec3> Icosphere::computeIcosahedronVertices()
+std::vector<glm::vec3> Icosphere::ComputeIcosahedronVertices()
 {
     const float PI = acos(-1);
     const float H_ANGLE = PI / 180 * 72;    // 72 degrees in radians
@@ -102,7 +102,7 @@ std::vector<glm::vec3> Icosphere::computeIcosahedronVertices()
 
 }
 
-void Icosphere::buildVertices()
+void Icosphere::BuildVertices()
 {
     const float S_STEP = 1 / 11.0f;
     const float T_STEP = 1 / 3.0f;
@@ -110,11 +110,11 @@ void Icosphere::buildVertices()
     // compute 12 vertices of icosahedron
     // NOTE: v0 (top), v11 (bottom), v1, v6 (first vertices on each row) cannot
     // be shared for smooth shading (they have different texcoords)
-    std::vector<glm::vec3> tmpVertices = computeIcosahedronVertices();
+    std::vector<glm::vec3> tmpVertices = ComputeIcosahedronVertices();
 
 
     // clear memory
-    clearArrays();
+    ClearArrays();
 
     glm::vec3 vertex;
     glm::vec3 normal;
@@ -272,92 +272,34 @@ void Icosphere::buildVertices()
 
 
     // build index list for icosahedron (20 triangles)
-    addIndices( 0, 10, 14);      // 1st row (5 tris)     
-    addIndices( 1, 14, 15);
-    addIndices( 2, 15, 16);
-    addIndices( 3, 16, 17);
-    addIndices( 4, 17, 11);
-    addIndices(10, 12, 14);      // 2nd row (10 tris)
-    addIndices(12, 18, 14);
-    addIndices(14, 18, 15);
-    addIndices(18, 19, 15);
-    addIndices(15, 19, 16);
-    addIndices(19, 20, 16);
-    addIndices(16, 20, 17);
-    addIndices(20, 21, 17);
-    addIndices(17, 21, 11);
-    addIndices(21, 13, 11);
-    addIndices( 5, 18, 12);      // 3rd row (5 tris)
-    addIndices( 6, 19, 18);
-    addIndices( 7, 20, 19);
-    addIndices( 8, 21, 20);
-    addIndices( 9, 13, 21);
+    AddIndices( 0, 10, 14);      // 1st row (5 tris)     
+    AddIndices( 1, 14, 15);
+    AddIndices( 2, 15, 16);
+    AddIndices( 3, 16, 17);
+    AddIndices( 4, 17, 11);
+    AddIndices(10, 12, 14);      // 2nd row (10 tris)
+    AddIndices(12, 18, 14);
+    AddIndices(14, 18, 15);
+    AddIndices(18, 19, 15);
+    AddIndices(15, 19, 16);
+    AddIndices(19, 20, 16);
+    AddIndices(16, 20, 17);
+    AddIndices(20, 21, 17);
+    AddIndices(17, 21, 11);
+    AddIndices(21, 13, 11);
+    AddIndices( 5, 18, 12);      // 3rd row (5 tris)
+    AddIndices( 6, 19, 18);
+    AddIndices( 7, 20, 19);
+    AddIndices( 8, 21, 20);
+    AddIndices( 9, 13, 21);
 
     // subdivide icosahedron
-    subdivideVertices();
+    SubdivideVertices();
 
 
-
-    // initialize tangent and bitangent
-    tangents   = std::vector<glm::vec3>(normals.size(), glm::vec3(0.0f));
-    bitangents = std::vector<glm::vec3>(normals.size(), glm::vec3(0.0f));
-
-    // initialize vectors for vertices and texture coords
-    glm::vec3 v1, v2, v3;
-    glm::vec2 t1, t2, t3;
-
-    // traverse all triangles and calculate tangents and bitangents
-    // for all vertices
-    for(int i=0; i<indices.size(); i+=3)
-    {
-        v1 = vertices[indices[i]];
-        v2 = vertices[indices[i+1]];
-        v3 = vertices[indices[i+2]];
-
-        t1 = texCoords[indices[i]];
-        t2 = texCoords[indices[i+1]];
-        t3 = texCoords[indices[i+2]];
-
-        std::vector<glm::vec3> tangentBitangents = calcTangentBitangents(v1,v2,v3,
-                                                                         t1,t2,t3);
-
-        tangents[indices[i]]     += tangentBitangents[0];
-        bitangents[indices[i]]   += tangentBitangents[1];
-
-        tangents[indices[i+1]]   += tangentBitangents[0];
-        bitangents[indices[i+1]] += tangentBitangents[1];
-
-        tangents[indices[i+2]]   += tangentBitangents[0];
-        bitangents[indices[i+2]] += tangentBitangents[1];        
-
-
-    }
-
-    // orthogonalize and normalize tangents and bitangents   
-    for(int i=0; i<vertices.size(); i++)
-    {
-        glm::vec3 &normal = normals[i];
-        glm::vec3 &tangent = tangents[i];
-        glm::vec3 &bitangent = bitangents[i];
-
-        normal = glm::normalize(normal);
-        tangent = glm::normalize(tangent);
-        bitangent = glm::normalize(bitangent);
-
-        // gram-schmidt orthogonalize
-        tangent = glm::normalize(tangent - normal * glm::dot(normal, tangent));
-
-        // calculate handedness
-        if(glm::dot(glm::cross(tangent, normal), bitangent) < 0.0f)
-            tangent *= -1.0f;
-
-        bitangent = glm::normalize(glm::cross(tangent, normal));
-    }
-
-   
-
-    setupArrayBuffer();
-    setupMesh();
+    SetupTangentBitangents();
+    SetupArrayBuffer();
+    SetupMesh();
 }
 
 
@@ -372,7 +314,7 @@ void Icosphere::buildVertices()
 //    v2---*---v3       //
 //        newV2         //
 ///////////////////////////////////////////////////////////////////////////////
-void Icosphere::subdivideVertices()
+void Icosphere::SubdivideVertices()
 {
     std::vector<unsigned int> tmpIndices;
     int indexCount;
@@ -415,157 +357,58 @@ void Icosphere::subdivideVertices()
 
 
             // get 3 new vertex attribs by splitting half on each edge
-            computeHalfVertex(v1, v2, radius, newV1);
-            computeHalfVertex(v2, v3, radius, newV2);
-            computeHalfVertex(v1, v3, radius, newV3);
+            ComputeHalfVertex(v1, v2, radius, newV1);
+            ComputeHalfVertex(v2, v3, radius, newV2);
+            ComputeHalfVertex(v1, v3, radius, newV3);
 
-            computeHalfTexCoord(t1, t2, newT1);
-            computeHalfTexCoord(t2, t3, newT2);
-            computeHalfTexCoord(t1, t3, newT3);
+            ComputeHalfTexCoord(t1, t2, newT1);
+            ComputeHalfTexCoord(t2, t3, newT2);
+            ComputeHalfTexCoord(t1, t3, newT3);
 
-            computeVertexNormal(newV1, newN1);
-            computeVertexNormal(newV2, newN2);
-            computeVertexNormal(newV3, newN3);
+            ComputeVertexNormal(newV1, newN1);
+            ComputeVertexNormal(newV2, newN2);
+            ComputeVertexNormal(newV3, newN3);
 
             // add new vertices/normals/texcoords to arrays
             // it will check if it is shared/non-shared and
             // return index
-            newI1 = addSubVertexAttributes(newV1, newN1, newT1);
-            newI2 = addSubVertexAttributes(newV2, newN2, newT2);
-            newI3 = addSubVertexAttributes(newV3, newN3, newT3);
+            newI1 = AddSubVertexAttributes(newV1, newN1, newT1);
+            newI2 = AddSubVertexAttributes(newV2, newN2, newT2);
+            newI3 = AddSubVertexAttributes(newV3, newN3, newT3);
 
             // add 4 new triangle indices
-            addIndices(i1, newI1, newI3);
-            addIndices(newI1, i2, newI2);
-            addIndices(newI1, newI2, newI3);
-            addIndices(newI3, newI2, i3);
+            AddIndices(i1, newI1, newI3);
+            AddIndices(newI1, i2, newI2);
+            AddIndices(newI1, newI2, newI3);
+            AddIndices(newI3, newI2, i3);
         }
     }
 
 }
 
-void Icosphere::setupArrayBuffer()
-{
-    arrayBuffer.clear();
-
-    for(unsigned int i=0; i<vertices.size(); i++)
-    {
-        // Add position
-        arrayBuffer.push_back(vertices[i].x);
-        arrayBuffer.push_back(vertices[i].y);
-        arrayBuffer.push_back(vertices[i].z);
-
-        // Add normal
-        arrayBuffer.push_back(normals[i].x);
-        arrayBuffer.push_back(normals[i].y);
-        arrayBuffer.push_back(normals[i].z);
-
-        // Add texture coords
-        arrayBuffer.push_back(texCoords[i].x);
-        arrayBuffer.push_back(texCoords[i].y);
-
-        // Add tangents
-        arrayBuffer.push_back(tangents[i].x);
-        arrayBuffer.push_back(tangents[i].y);
-        arrayBuffer.push_back(tangents[i].z);
-
-        // Add bitangents
-        arrayBuffer.push_back(bitangents[i].x);
-        arrayBuffer.push_back(bitangents[i].y);
-        arrayBuffer.push_back(bitangents[i].z);
-
-    }
-}
-
-void Icosphere::setupMesh()
-{
-
-    // clear buffers if they are already allocated
-    if(VAO != 0)
-    {
-        glDeleteVertexArrays(1, &VAO);
-        glDeleteBuffers(1, &VBO);
-        glDeleteBuffers(1, &EBO);
-    }
-
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
-
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-
-    glBufferData(GL_ARRAY_BUFFER, arrayBuffer.size() * sizeof(float), &arrayBuffer[0], GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
-
-    // position data of vertices
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 56, (void*)0);
-
-    // normal data of vertices
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 56, (void*)(3 * sizeof(float)));
-
-    // texture coordinates of vertices
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 56, (void*)(6 * sizeof(float)));
-
-    // tangents of vertices
-    glEnableVertexAttribArray(3);
-    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 56, (void*)(8 * sizeof(float)));
-
-    // bitangents of vertices
-    glEnableVertexAttribArray(4);
-    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 56, (void*)(11 * sizeof(float)));
-
-    // unbind vertex array
-    glBindVertexArray(0);    
-}
-
-void Icosphere::draw() const
-{
-    glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
-    glBindVertexArray(0);
-}
-
-void Icosphere::clearArrays()
-{
-    vertices.clear();
-    normals.clear();
-    tangents.clear();
-    bitangents.clear();
-    texCoords.clear();
-    indices.clear();
-    sharedIndices.clear();
-}
-
-
-float Icosphere::computeScaleForLength(glm::vec3 vertex, float length)
+float Icosphere::ComputeScaleForLength(glm::vec3 vertex, float length)
 {
     return length / glm::length(vertex);
 }
 
-void Icosphere::computeHalfVertex(const glm::vec3& v1, const glm::vec3& v2, float length, glm::vec3& newVertex)
+void Icosphere::ComputeHalfVertex(const glm::vec3& v1, const glm::vec3& v2, float length, glm::vec3& newVertex)
 {
     newVertex = v1 + v2;
-    float scale = computeScaleForLength(newVertex, length);
+    float scale = ComputeScaleForLength(newVertex, length);
     newVertex *= scale;
 }
 
-void Icosphere::computeHalfTexCoord(const glm::vec2& t1, const glm::vec2& t2, glm::vec2& newTexCoord)
+void Icosphere::ComputeHalfTexCoord(const glm::vec2& t1, const glm::vec2& t2, glm::vec2& newTexCoord)
 {
     newTexCoord = (t1 + t2) * 0.5f;
 }
 
-unsigned int Icosphere::addSubVertexAttributes(const glm::vec3& v, const glm::vec3& n, const glm::vec2& t)
+unsigned int Icosphere::AddSubVertexAttributes(const glm::vec3& v, const glm::vec3& n, const glm::vec2& t)
 {
     unsigned int index;
 
     // check if vertex is shared or not
-    if(Icosphere::isSharedTexCoord(t))
+    if(Icosphere::IsSharedTexCoord(t))
     {
         // find if it does already exist in sharedIndices map using (s,t) key
         // if not in the list, add the vertex attribs to arrays and return its index
@@ -595,7 +438,7 @@ unsigned int Icosphere::addSubVertexAttributes(const glm::vec3& v, const glm::ve
     return index;
 }
 
-bool Icosphere::isOnLineSegment(const glm::vec2& a, const glm::vec2& b, const glm::vec2& c)
+bool Icosphere::IsOnLineSegment(const glm::vec2& a, const glm::vec2& b, const glm::vec2& c)
 {
     const float EPSILON = 0.0001f;
 
@@ -630,7 +473,7 @@ bool Icosphere::isOnLineSegment(const glm::vec2& a, const glm::vec2& b, const gl
 //     \/  \/  \/  \/  \/       //
 //      15  16  17  18  19      //
 ///////////////////////////////////////////////////////////////////////////////
-bool Icosphere::isSharedTexCoord(const glm::vec2& t)
+bool Icosphere::IsSharedTexCoord(const glm::vec2& t)
 {
     const float S = 1.0f / 11;
     const float T = 1.0f / 3;
@@ -661,7 +504,7 @@ bool Icosphere::isSharedTexCoord(const glm::vec2& t)
     {
         glm::vec2 a(segments[i], segments[i+1]);
         glm::vec2 b(segments[j], segments[j+1]);
-        if(isOnLineSegment(a, b, t))
+        if(IsOnLineSegment(a, b, t))
         {
 
             return false;
@@ -671,14 +514,7 @@ bool Icosphere::isSharedTexCoord(const glm::vec2& t)
     return true;                              
 }
 
-void Icosphere::computeVertexNormal(const glm::vec3& vertex, glm::vec3& normal)
+void Icosphere::ComputeVertexNormal(const glm::vec3& vertex, glm::vec3& normal)
 {
     normal = glm::normalize(vertex);
-}
-
-void Icosphere::addIndices(unsigned int i1, unsigned int i2, unsigned int i3)
-{
-    indices.push_back(i1);
-    indices.push_back(i2);
-    indices.push_back(i3);
 }

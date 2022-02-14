@@ -25,7 +25,8 @@ public:
         ParallaxMappingData::normalMap = LoadTexture(normalTexturePath.c_str());
         ParallaxMappingData::heightMap = LoadTexture(heightTexturePath.c_str());
 
-        ParallaxMappingData::sphere = new Icosphere(1.0, 3);
+        ParallaxMappingData::sphere = new RadialSphere(1.0, 32, 32);
+        ParallaxMappingData::sphere2    = new Icosphere(1.0, 3);
 
         ParallaxMappingData::shader->use();
         ParallaxMappingData::shader->setInt("diffuseMap", 0);
@@ -68,7 +69,11 @@ public:
         model = glm::translate(model, glm::vec3(0.0f, 0.3f, 1.4f));
         model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));
         ParallaxMappingData::shader->set4Matrix("model", model);
-        ParallaxMappingData::sphere->draw();
+        ParallaxMappingData::sphere->Draw();
+
+        model = glm::translate(model, glm::vec3(3.0f, 0.0, 0.0));
+        ParallaxMappingData::shader->set4Matrix("model", model);
+        ParallaxMappingData::sphere2->Draw();
 
         // render light source
         model = glm::mat4(1.0f);
