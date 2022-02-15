@@ -266,7 +266,7 @@ void Icosphere::BuildVertices()
     normal.z = tmpVertices[1].z;
     normal = glm::normalize(normal);
     vertices.push_back(tmpVertices[1]);
-    normals.push_back(glm::vec3(1.0,1.0,1.0));
+    normals.push_back(normal);
     texCoords.push_back(glm::vec2(0, T_STEP));
 
     vertices.push_back(tmpVertices[1]);                        // v11 (right)
