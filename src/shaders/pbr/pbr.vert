@@ -5,21 +5,46 @@ layout (location = 2) in vec2 aTexCoords;
 layout (location = 3) in vec3 aTangent;
 layout (location = 4) in vec3 aBitangent;
 
-out vec2 TexCoords;
-out vec3 WorldPos;
-out vec3 Normal;
+out VS_OUT {
+    vec3 FragPos;
+    vec2 TexCoords;
+    vec3 TangentViewPos;
+    vec3 TangentFragPos;
+    vec3 TangentLightPos[4];    
+} vs_out;
 
 uniform mat4 projection;
 uniform mat4 view;
 uniform mat4 model;
+uniform vec3 lightPositions[4];
+uniform vec3 camPos;
 
+// I have changed tutorial code a little bit
+// First implemented custom sphere builder 
+// classes (both radial and icosahedron)
+// calculated normals, tangent and bitangents
+// normal will be directly equal to the value
+// fetched from normal map
 void main()
 {
-    TexCoords = aTexCoords;
-    WorldPos = vec3(model * vec4(aPos, 1.0));
+    vs_out.TexCoords = aTexCoords;
+    vs_out.FragPos = vec3(model * vec4(aPos, 1.0));
 
-    mat3 normalMatrix = transpose(inverse(mat3(model)));
-    Normal = normalMatrix * aNormal;
+    vec3 T = normalize(mat3(model) * aTangent);
+    vec3 B = normalize(mat3(model) * aBitangent);
+    vec3 N = normalize(mat3(model) * aNormal);
 
-    gl_Position = projection * view * vec4(WorldPos, 1.0);
+    // Take inverse of TBN to convert other coordinates to
+    // tangnent space system
+    mat3 TBN = transpose(mat3(T,B,N));
+
+    vs_out.TangentViewPos = TBN * camPos;
+    vs_out.TangentFragPos = TBN * vs_out.FragPos;
+
+    for(int i=0; i<4; i++)
+    {
+        vs_out.TangentLightPos[i] = TBN * lightPositions[i];
+    }
+
+    gl_Position = projection * view * vec4(vs_out.FragPos, 1.0);
 }

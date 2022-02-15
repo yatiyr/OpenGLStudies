@@ -1,14 +1,21 @@
 #version 330 core
 out vec4 FragColor;
-in vec2 TexCoords;
-in vec3 WorldPos;
-in vec3 Normal;
+
+in VS_OUT {
+    vec3 FragPos;
+    vec2 TexCoords;
+    vec3 TangentViewPos;
+    vec3 TangentFragPos;
+    vec3 TangentLightPos[4];    
+} fs_in;
+
 
 // material parameters
-uniform vec3 albedo;
-uniform float metallic;
-uniform float roughness;
-uniform float ao;
+uniform sampler2D albedoMap;
+uniform sampler2D normalMap;
+uniform sampler2D metallicMap;
+uniform sampler2D roughnessMap;
+uniform sampler2D aoMap;
 
 // lights
 uniform vec3 lightPositions[4];
@@ -59,9 +66,23 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0)
 }
 // ----------------------------------------------------------------------------
 void main()
-{		
-    vec3 N = normalize(Normal);
-    vec3 V = normalize(camPos - WorldPos);
+{
+
+    vec3 albedo = pow(texture(albedoMap, fs_in.TexCoords).rgb, vec3(2.2));
+    float metallic = texture(metallicMap, fs_in.TexCoords).r;
+    float roughness  = texture(roughnessMap, fs_in.TexCoords).r;
+    float ao = texture(aoMap, fs_in.TexCoords).r;
+
+    vec3 N = texture(normalMap, fs_in.TexCoords).rgb;
+    N = normalize(N * 2.0 - 1.0);
+
+    // vec3 FragPos;
+    // vec2 TexCoords;
+    // vec3 TangentViewPos;
+    // vec3 TangentFragPos;
+    // vec3 TangentLightPos[4];   
+
+    vec3 V = normalize(fs_in.TangentViewPos - fs_in.TangentFragPos);
 
     // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0 
     // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)    
@@ -73,9 +94,9 @@ void main()
     for(int i = 0; i < 4; ++i) 
     {
         // calculate per-light radiance
-        vec3 L = normalize(lightPositions[i] - WorldPos);
+        vec3 L = normalize(fs_in.TangentLightPos[i] - fs_in.TangentFragPos);
         vec3 H = normalize(V + L);
-        float distance = length(lightPositions[i] - WorldPos);
+        float distance = length(fs_in.TangentLightPos[i] - fs_in.TangentFragPos);
         float attenuation = 1.0 / (distance * distance);
         vec3 radiance = lightColors[i] * attenuation;
 

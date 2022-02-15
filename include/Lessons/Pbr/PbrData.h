@@ -40,6 +40,12 @@ namespace PbrData
     float spacing = 2.5f;
 
     glm::mat4 projection;
+
+    unsigned int albedoMap;
+    unsigned int normalMap;
+    unsigned int metallicMap;
+    unsigned int roughnessMap;
+    unsigned int aoMap;
 }
 
 

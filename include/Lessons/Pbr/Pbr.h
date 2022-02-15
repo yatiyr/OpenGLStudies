@@ -19,14 +19,32 @@ public:
         // build and compile shader
         PbrData::shader = new ShaderProgram("shaders/pbr/pbr.vert", "shaders/pbr/pbr.frag");
 
+        // load textures
+        std::string albedoPath    = std::string(ROOT_DIR) + "assets/textures/pbr/rustediron2_basecolor.png";
+        std::string normalPath    = std::string(ROOT_DIR) + "assets/textures/pbr/rustediron2_normal.png";
+        std::string metallicPath  = std::string(ROOT_DIR) + "assets/textures/pbr/rustediron2_metallic.png";
+        std::string roughnessPath = std::string(ROOT_DIR) + "assets/textures/pbr/rustediron2_roughness.png";
+        std::string aoPath        = std::string(ROOT_DIR) + "assets/textures/pbr/rustediron2_ao.png";
+
+        PbrData::albedoMap    = LoadTexture(albedoPath.c_str());
+        PbrData::normalMap    = LoadTexture(normalPath.c_str());
+        PbrData::metallicMap  = LoadTexture(metallicPath.c_str());
+        PbrData::roughnessMap = LoadTexture(roughnessPath.c_str());
+        PbrData::aoMap        = LoadTexture(aoPath.c_str());        
+
         // smooth shading is on for both sphere types
         PbrData::sphere = new RadialSphere(1, 64, 64, true);
-        PbrData::sphere2 = new Icosphere(1, 3, true);
+        PbrData::sphere2 = new Icosphere(1, 4, true);
 
         PbrData::shader->use();
         PbrData::shader->setVec3("albedo", 0.5f, 0.0f, 0.0f);
         PbrData::shader->setFloat("ao", 1.0f);
 
+        PbrData::shader->setInt("albedoMap", 0);
+        PbrData::shader->setInt("normalMap", 1);
+        PbrData::shader->setInt("metallicMap", 2);
+        PbrData::shader->setInt("roughnessMap", 3);
+        PbrData::shader->setInt("aoMap", 4);
     }
 
     static void draw(Camera* cam, float currentFrame)
@@ -42,6 +60,17 @@ public:
         PbrData::shader->set4Matrix("projection", PbrData::projection);
         PbrData::shader->set4Matrix("view", view);
         PbrData::shader->setVec3("camPos", cam->Position);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, PbrData::albedoMap);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, PbrData::normalMap);
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, PbrData::metallicMap);
+        glActiveTexture(GL_TEXTURE3);
+        glBindTexture(GL_TEXTURE_2D, PbrData::roughnessMap);
+        glActiveTexture(GL_TEXTURE4);
+        glBindTexture(GL_TEXTURE_2D, PbrData::aoMap);
 
         // render rows*column number of spheres with varying metallic/roughness values scaled by rows and columns respectively
         glm::mat4 model = glm::mat4(1.0f);
@@ -61,14 +90,14 @@ public:
                     0.0f
                 ));
                 PbrData::shader->set4Matrix("model", model);
-                PbrData::sphere2->Draw();
+                PbrData::sphere->Draw();
             }
         }
 
         // render light source
         for(unsigned int i=0; i< sizeof(PbrData::lightPositions) / sizeof(PbrData::lightPositions[0]); i++)
         {
-            glm::vec3 newPos = PbrData::lightPositions[i] + glm::vec3(sin(currentFrame * 5.0) * 5.0, 0.0, 0.0);
+            glm::vec3 newPos = PbrData::lightPositions[i] + glm::vec3(sin(currentFrame * 3.0) * 10.0, 0.0, 0.0);
             //newPos = PbrData::lightPositions[i];
             PbrData::shader->setVec3("lightPositions[" + std::to_string(i) + "]", newPos);
             PbrData::shader->setVec3("lightColors[" + std::to_string(i) + "]", PbrData::lightColors[i]);
